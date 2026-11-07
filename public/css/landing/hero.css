@@ -1,0 +1,235 @@
+/* ─── HERO SEKOLAH ─────────────────────────────────────── */
+.hero {
+  padding: 76px 0 92px;
+  background: linear-gradient(155deg, #121f36 0%, var(--navy) 40%, #1e426c 78%, var(--blue) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -15%;
+  width: 680px;
+  height: 680px;
+  background: radial-gradient(circle, rgba(59, 130, 196, 0.24), transparent 65%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -40%;
+  left: -8%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(46, 125, 84, 0.16), transparent 65%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero-shapes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.hero-shapes .sh {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.06;
+  background: #ffffff;
+}
+.hero-shapes .sh-1 { width: 180px; height: 180px; top: 15%; right: 8%; }
+.hero-shapes .sh-2 { width: 100px; height: 100px; top: 60%; right: 25%; border-radius: var(--r-lg); transform: rotate(30deg); }
+.hero-shapes .sh-3 { width: 60px; height: 60px; top: 30%; right: 38%; }
+.hero-shapes .sh-4 { width: 250px; height: 250px; bottom: -12%; right: -5%; opacity: 0.04; }
+
+.hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--navy) url('/images/background.jpeg') center/cover no-repeat;
+  pointer-events: none;
+}
+.hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+.hero-video.is-ready {
+  opacity: 0.9;
+  filter: brightness(1.15) contrast(1.05) saturate(1.1);
+}
+/* Overlay dibuat lebih tipis agar video terlihat jelas, tetapi sisi kiri
+   tetap sedikit lebih gelap supaya judul dan teks tetap mudah dibaca. */
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(14, 24, 42, 0.25) 0%, rgba(16, 29, 49, 0.15) 100%),
+    linear-gradient(90deg, rgba(12, 22, 38, 0.6) 0%, rgba(18, 34, 58, 0.3) 55%, rgba(14, 26, 46, 0.1) 100%);
+}
+.hero-has-video .hero-content h1,
+.hero-has-video .hero-content .hero-sub {
+  text-shadow: 0 2px 12px rgba(8, 15, 28, 0.55);
+}
+
+@media (max-width: 767.98px), (prefers-reduced-motion: reduce) {
+  .hero-media { display: none !important; }
+}
+
+.hero .wrap {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 56% 39%;
+  gap: 5%;
+  align-items: center;
+}
+
+.hero-content { color: #ffffff; }
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #ffcf8b;
+  margin-bottom: 20px;
+}
+.hero-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #48a674;
+}
+
+.hero h1 {
+  font-size: 2.7rem;
+  font-weight: 800;
+  line-height: 1.13;
+  color: #ffffff;
+  margin-bottom: 18px;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+}
+.hero h1 em {
+  font-style: normal;
+  color: #ffbe6b;
+}
+
+.hero-sub {
+  font-size: 1.02rem;
+  line-height: 1.72;
+  color: rgba(255, 255, 255, 0.88);
+  max-width: 520px;
+  margin-bottom: 30px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.btn-hero {
+  padding: 12px 28px;
+  border-radius: var(--r);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+}
+.btn-hero-primary {
+  background: #ffffff;
+  color: var(--navy);
+}
+.btn-hero-primary:hover {
+  background: #ffcf8b;
+  color: var(--navy);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+.btn-hero-outline {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+}
+.btn-hero-outline:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+/* ─── HERO VISUAL (Sisi Kanan Bersih & Elegan) ─── */
+.hero-visual {
+  position: relative;
+}
+.hero-visual img {
+  width: 100%;
+  border-radius: var(--r-xl);
+  box-shadow: 0 20px 56px rgba(8, 15, 28, 0.35);
+  display: block;
+}
+.hero-visual-card {
+  position: absolute;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom: 3px solid var(--blue);
+  border-radius: var(--r-lg);
+  padding: 13px 18px;
+  box-shadow: var(--shadow-lg);
+  font-size: 0.82rem;
+  color: var(--text-dark);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hero-visual-card.hvc-1 {
+  bottom: -16px;
+  left: -18px;
+}
+.hero-visual-card.hvc-2 {
+  top: -14px;
+  right: -16px;
+  border-bottom-color: var(--sage);
+}
+.hvc-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.hvc-icon.ic-blue { background: var(--blue-bg); color: var(--blue); }
+.hvc-icon.ic-sage { background: var(--sage-bg); color: var(--sage); }
+.hvc-num {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  line-height: 1.15;
+}
+.hvc-label {
+  font-size: 0.72rem;
+  color: var(--text-light);
+  font-weight: 600;
+}

@@ -176,4 +176,50 @@ class CoreModulesTest extends TestCase
         $this->actingAs($this->user('admin'))->get('/dashboard')->assertOk()->assertViewHas('stats', fn ($stats) => $stats['Awaiting grading'] === 1);
         $this->assertSame(3, Assignment::first()->submissions()->count());
     }
+
+    public function test_admin_can_create_user_with_password_and_reset_forgotten_password(): void
+    {
+        $this->actingAs($this->user('admin'));
+        $this->post('/admin/manage/users', [
+            'name' => 'Dosen Baru Langsung',
+            'email' => 'dosen.baru@example.com',
+            'role' => 'teacher',
+            'status' => 'active',
+            'password' => 'DosenPass1234',
+        ])->assertRedirect('/admin/manage/users')->assertSessionHasNoErrors();
+
+        $created = User::where('email', 'dosen.baru@example.com')->firstOrFail();
+        $this->assertSame('active', $created->status);
+        $this->assertNotNull($created->email_verified_at);
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('DosenPass1234', $created->password));
+        $this->assertSame('DosenPass1234', $created->adminVisiblePassword());
+        $this->get('/admin/manage/users')->assertOk()->assertSee('DosenPass1234');
+
+        // Edit without password keeps existing password
+        $this->put('/admin/manage/users/'.$created->id, [
+            'name' => 'Dosen Baru Diperbarui',
+            'email' => 'dosen.baru@example.com',
+            'role' => 'teacher',
+            'status' => 'active',
+            'password' => '',
+        ])->assertRedirect('/admin/manage/users')->assertSessionHasNoErrors();
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('DosenPass1234', $created->fresh()->password));
+        $this->assertSame('DosenPass1234', $created->fresh()->adminVisiblePassword());
+
+        // Edit with new password resets password
+        $this->put('/admin/manage/users/'.$created->id, [
+            'name' => 'Dosen Baru Diperbarui',
+            'email' => 'dosen.baru@example.com',
+            'role' => 'teacher',
+            'status' => 'active',
+            'password' => 'ResetSandi999',
+        ])->assertRedirect('/admin/manage/users')->assertSessionHasNoErrors();
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('ResetSandi999', $created->fresh()->password));
+        $this->assertSame('ResetSandi999', $created->fresh()->adminVisiblePassword());
+
+        // Non-admin users do not see password change form on profile
+        $this->get('/profile')->assertOk()->assertSee('/profile/password');
+        $this->actingAs($this->user('teacher'))->get('/profile')->assertOk()->assertDontSee('/profile/password');
+        $this->actingAs($this->user('student'))->get('/profile')->assertOk()->assertDontSee('/profile/password');
+    }
 }

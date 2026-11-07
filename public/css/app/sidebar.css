@@ -1,0 +1,238 @@
+/* ── Left Curved Sidebar & Workspace Layout ──────────────── */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-page);
+}
+
+.app-sidebar {
+  position: sticky;
+  top: 0;
+  width: 248px;
+  height: 100vh;
+  min-height: 100vh;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: #16223e;
+  background-image:
+    linear-gradient(180deg, rgba(20, 32, 58, 0.76) 0%, rgba(26, 40, 72, 0.56) 48%, rgba(16, 26, 48, 0.72) 100%),
+    url('/images/sidebar.jpeg');
+  background-position: center bottom;
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: #ffffff;
+  z-index: 1040;
+  overflow: hidden;
+  transition:
+    width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sidebar-header {
+  position: relative;
+  z-index: 3;
+  padding: 22px 16px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+  color: #ffffff;
+  min-width: 0;
+  transition: transform 0.3s ease;
+}
+.sidebar-brand:hover {
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.sidebar-logo-ring {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  animation: sidebarLogoFloat 4s ease-in-out infinite;
+  transition: width 0.3s ease, height 0.3s ease;
+}
+@keyframes sidebarLogoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.sidebar-brand-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 11px;
+  background: #ffffff;
+  object-fit: contain;
+  padding: 2px;
+}
+
+.sidebar-brand-text {
+  min-width: 0;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.sidebar-brand-title {
+  display: block;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.08rem;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  line-height: 1.15;
+}
+.sidebar-brand-text small {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.sidebar-collapse-btn,
+.sidebar-close-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.sidebar-collapse-btn:hover,
+.sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.45);
+  transform: scale(1.06);
+}
+.sidebar-collapse-btn svg {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Sidebar Navigation Links with Elastic Curved Notch Tab */
+.sidebar-menu {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 0 22px 14px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+.sidebar-menu::-webkit-scrollbar { display: none; }
+
+/* Elastic Sliding Curved Outside Active Tab (#sidebarIndicator) */
+.sidebar-indicator {
+  position: absolute;
+  left: 14px;
+  right: 0;
+  top: var(--ind-top, 20px);
+  height: var(--ind-height, 44px);
+  background: var(--bg-page);
+  border-radius: 30px 0 0 30px;
+  transition:
+    top 0.36s cubic-bezier(0.175, 0.885, 0.32, 1.12),
+    height 0.25s ease,
+    left 0.3s ease,
+    opacity 0.2s ease;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+}
+.sidebar-menu.has-indicator .sidebar-indicator {
+  opacity: 1;
+}
+.sidebar-indicator::before,
+.sidebar-indicator::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+.sidebar-indicator::before {
+  top: -20px;
+  border-bottom-right-radius: 20px;
+  box-shadow: 10px 10px 0 10px var(--bg-page);
+}
+.sidebar-indicator::after {
+  bottom: -20px;
+  border-top-right-radius: 20px;
+  box-shadow: 10px -10px 0 10px var(--bg-page);
+}
+
+.sidebar-link {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 18px 10px 18px;
+  margin-right: 0;
+  border-radius: 30px 0 0 30px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color 0.22s ease,
+    padding 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sidebar-link-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.sidebar-link-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.sidebar-link-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-link:hover {
+  color: #ffffff;
+}
+.sidebar-link:hover .sidebar-link-icon {
+  transform: scale(1.15);
+}

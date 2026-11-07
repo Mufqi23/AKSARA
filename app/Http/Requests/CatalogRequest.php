@@ -12,25 +12,34 @@ class CatalogRequest extends FormRequest
         return $this->user()?->role === 'admin';
     }
 
+    public function resourceName(): string
+    {
+        if ($this->route('resource')) {
+            return (string) $this->route('resource');
+        }
+
+        return (string) ($this->segments()[2] ?? '');
+    }
+
     public function rules(): array
     {
-        return Catalog::rules($this->route('resource'), $this->route('id') ? (int) $this->route('id') : null, $this->all());
+        return Catalog::rules($this->resourceName(), $this->route('id') ? (int) $this->route('id') : null, $this->all());
     }
 
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            if ($this->route('resource') === 'subjects' && ! $validator->errors()->any()
+            if ($this->resourceName() === 'subjects' && ! $validator->errors()->any()
                 && $this->filled('lecture_units') && abs((float) $this->units - (float) $this->lecture_units - (float) $this->laboratory_units) > 0.0001) {
-                $validator->errors()->add('units', 'Total units must equal lecture units plus laboratory units.');
+                $validator->errors()->add('units', 'Total Jam Pelajaran (JP) harus sama dengan jumlah JP Teori ditambah JP Praktik.');
             }
         });
     }
 
     public function attributes(): array
     {
-        [, $fields] = Catalog::definition($this->route('resource'));
+        [, $fields] = Catalog::definition($this->resourceName());
 
-        return collect($fields)->mapWithKeys(fn ($type, $field) => [$field => Catalog::fieldLabel($field, $this->route('resource'))])->all();
+        return collect($fields)->mapWithKeys(fn ($type, $field) => [$field => Catalog::fieldLabel($field, $this->resourceName())])->all();
     }
 }

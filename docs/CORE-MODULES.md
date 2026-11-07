@@ -1,76 +1,52 @@
-# Three core modules
+# Tiga Modul Inti Sekolah
 
-The existing Laravel application now presents three navigation groups. Overview,
-Announcements and Profile remain available outside those groups.
+Navigasi portal **AKSARA** dikelompokkan ke dalam tiga pilar utama kegiatan sekolah, ditambah halaman Beranda (*Dashboard*), AI Peringatan Dini, Pengumuman Sekolah, dan Profil Saya.
 
-| Module | Admin | Teacher | Student |
+| Modul | Administrator Sekolah | Guru Pengajar | Siswa |
 | --- | --- | --- | --- |
-| Academic Management | Academic years, programs, year levels, blocks, subjects, students, teachers, classes/teacher assignments, user accounts | My classes and class roster | My classes, subjects, year level, block and teacher |
-| Learning & Activities | Monitor class content and submissions | Lessons, materials, assignments, submissions and grading | Lessons, materials, assignments and submissions |
-| Student Monitoring | Attendance reports and grade reports | Record attendance, class gradebooks and reports | Attendance, grades and schedule |
+| **Manajemen Akademik** | Tahun ajaran, jurusan, tingkat kelas, rombel, mata pelajaran, data siswa, data guru, kelas/penugasan guru, akun pengguna | Kelas saya dan daftar siswa peserta kelas | Kelas saya, mata pelajaran, tingkat kelas, rombel, dan guru pengajar |
+| **Materi & Pembelajaran** | Memantau aktivitas kelas dan pengumpulan tugas siswa | Pertemuan pelajaran, bahan ajar, tugas, pengumpulan, dan penilaian | Materi pelajaran, bahan ajar, tugas, dan pengumpulan |
+| **Pemantauan & Evaluasi** | AI peringatan dini siswa, laporan presensi, dan laporan nilai | Pencatatan presensi harian, buku nilai kelas, AI peringatan dini, dan laporan | Presensi kehadiran, nilai, progres mandiri AI, dan jadwal pelajaran |
 
-Class enrollment and ordinary schedule setup remain accessible from the admin
-Classes & Teacher Assignments screen. Existing schedule conflict validation remains
-enforced. Admin activity screens provide monitoring controls; existing administrator
-permissions and correction routes are retained.
+Pendaftaran kelas dan pengaturan jadwal pelajaran dapat diakses dari halaman admin **Kelas & Penugasan Guru** (`/admin/manage/teacher-assignments`), serta melalui `/admin/manage/enrollments` dan `/admin/manage/schedules` dengan validasi bentrok jadwal otomatis.
 
-## Hidden features
+## Fitur Lanjutan yang Disembunyikan secara Bawaan
 
-`config/lms.php` sets `show_advanced_features` to `false`. The main experience hides
-quizzes, advanced report/export links, notifications center, global search, excuse
-requests, attendance audit history, submission version history and attendance
-settings. Set this presentation setting to `true` to restore their entry points.
-No feature routes, controllers, models, tables or stored history were deleted.
-Existing quiz scores still contribute to academic grade calculations.
+`config/lms.php` mengatur `show_advanced_features` ke `false` agar antarmuka sekolah tetap ringkas dan fokus. Dengan pengaturan bawaan ini, tampilan utama menyembunyikan:
 
-The existing `/classes` route accepts a presentation-only `module=learning` or
-`module=monitoring` query to show the relevant class selector. It uses the same
-permission-scoped class query and opens the existing class page at its corresponding
-section.
+- kuis pilihan ganda lanjutan,
+- tautan laporan/ekspor tambahan,
+- pusat notifikasi terpisah,
+- pencarian global lanjut,
+- formulir permohonan izin presensi mandiri,
+- riwayat audit presensi rinci,
+- riwayat versi pengumpulan tugas terdahulu,
+- pengaturan ambang presensi global.
 
-## Bugs corrected
+Ubah nilai tersebut menjadi `true` bila sekolah ingin menampilkan seluruh titik masuk fitur lanjutan. Pengaturan ini hanya memengaruhi tampilan antarmuka: seluruh rute, *controller*, model, tabel, dan riwayat akademik tetap terjaga utuh.
 
-- Whole-number inputs used a decimal minimum, making valid Year Level and lesson
-  position values fail browser validation. Integer fields now use minimum 1 and
-  step 1; assessment points retain decimal input.
-- Year Level Name, Program, Year Level, Class and User Account labels are clearer.
-  Programs remain separate records and placement is selected on the Block form.
-- Required lesson/instruction text and initial material/file-only submission uploads
-  now also have browser-side required validation, matching existing server rules.
-- Generic catalog forms show field-specific validation and explain missing related
-  records; saving is disabled when required relationship options are unavailable.
-- Returned assignment status stays selected. Grading validation preserves entered
-  score/feedback/status for the submission being edited.
-- Assignment screens show the latest submission per student and preserve all
-  versions in the database. The admin grading count uses those latest submissions.
-- Attendance outside the teacher's seven-day edit window shows read-only controls;
-  failed session creation preserves entered form values. Empty rosters show a message.
-- Teacher announcements without a class now return validation errors instead of a
-  missing-page response. Publishing is disabled for teachers without classes.
-- Empty material references do not expose a broken download link.
-- Admin catalog choice lists are loaded once per field and related labels use eager
-  loading. Hidden notification badges, quiz lists and audit panels no longer cause
-  their unnecessary queries.
-- Content actions, class cards and calendar badges wrap on small screens.
+Rute `/classes` menerima parameter kueri `module=learning` atau `module=monitoring` yang mengarahkan guru maupun siswa ke bagian materi atau penilaian kelas yang sesuai dengan hak aksesnya.
 
-## Verification
+## Penyempurnaan Antarmuka & Validasi
 
-- Baseline: 42 tests, 320 assertions passed.
-- Updated suite: **54 tests, 587 assertions passed** on isolated SQLite databases.
-- All **65 Laravel routes** match the baseline; PHP syntax and Git whitespace checks
-  passed. Routes, authentication, models, migrations and schema are unchanged.
-- Every role's sidebar link loads in feature tests; existing role and class access
-  denial tests still pass. Advanced feature routes and restoration are tested.
-- Browser checks use a separate temporary SQLite database. Admin Year Level creation,
-  teacher lesson publication, student submission and teacher grading succeeded.
-  Screens were inspected at 1440 px and 390 px, including the mobile menu.
-- No production migrations, seeds or demo accounts are needed for this update.
+- Input bilangan bulat (misalnya nomor tingkat kelas dan urutan pertemuan pelajaran) memakai minimum 1 dan `step` 1; poin penilaian tetap mendukung nilai desimal.
+- Label **Tingkat Kelas**, **Jurusan**, **Rombel**, **Mata Pelajaran**, **Data Siswa**, **Data Guru**, dan **Akun Pengguna** diseragamkan khusus untuk lingkungan sekolah.
+- Teks materi/instruksi wajib serta unggahan berkas bahan ajar dan tugas divalidasi di peramban maupun di server.
+- Formulir katalog tata usaha menampilkan pesan validasi per kolom dan menonaktifkan tombol simpan apabila relasi wajib belum tersedia.
+- Halaman tugas menampilkan pengumpulan terbaru per siswa sambil tetap menyimpan seluruh riwayat revisi di basis data.
+- Presensi di luar jendela edit tujuh hari guru ditampilkan sebagai kontrol baca-saja (*read-only*).
+- Pengumuman guru tanpa kelas mengembalikan pesan validasi yang ramah tanpa halaman galat.
 
-## Existing hosting attention
+## Pengujian
 
-Configure persistent private S3-compatible storage for materials, submissions and
-profile photos. Vercel temporary files are not durable. The existing 20 MB Laravel
-file allowance exceeds Vercel's 4.5 MB request/response limit; larger transfers still
-need a separate storage transfer flow or conventional PHP hosting. Background
-scheduled commands still require the external scheduler described in
-[VERCEL.md](VERCEL.md). These hosting limitations are unchanged by this UI pass.
+Jalankan seluruh rangkaian uji dengan:
+
+```sh
+php artisan test
+```
+
+Hasil terverifikasi: **141 kasus uji (100% PASS)**. `CoreModulesTest` dan `EarlyWarningSystemTest` memverifikasi tautan navigasi setiap peran sekolah, pembatasan akses antar-kelas, serta pemantauan risiko akademik siswa.
+
+## Catatan Hosting
+
+Gunakan penyimpanan privat kompatibel S3 yang persisten untuk bahan ajar, berkas tugas siswa, dan foto profil apabila dideploy pada lingkungan *serverless* seperti Vercel. Penjelasan lengkap tersedia di [VERCEL.md](VERCEL.md).

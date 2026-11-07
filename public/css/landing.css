@@ -1,0 +1,10 @@
+﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   AKSARA â€” Aplikasi Kegiatan Sekolah dan Akademik Terpadu (Landing & Auth Manifest)
+   Modularized into ./landing/*.css for clean maintenance & debugging
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+@import url('./landing/base-navbar.css?v=20261108d');
+@import url('./landing/hero.css?v=20261108d');
+@import url('./landing/sections-footer.css?v=20261108d');
+@import url('./landing/login-card.css?v=20261108d');
+@import url('./landing/login-responsive.css?v=20261108d');

@@ -1,0 +1,123 @@
+/* ============================================================
+   AKSARA — AI Early Warning System (Clean Surface & Pola 3 KPI)
+   ============================================================ */
+
+.ews-exec-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom: 4px solid var(--navy);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 22px 24px;
+  position: relative;
+}
+
+.ews-ai-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--blue-soft);
+  color: var(--blue);
+  border: 1px solid rgba(var(--primary-rgb), 0.16);
+}
+
+.ews-kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom: 4px solid var(--navy);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 100%;
+}
+
+.ews-kpi-card.is-high { border-bottom-color: var(--danger); }
+.ews-kpi-card.is-medium { border-bottom-color: var(--warning); }
+.ews-kpi-card.is-low { border-bottom-color: var(--success); }
+.ews-kpi-card.is-total { border-bottom-color: var(--primary); }
+
+.ews-kpi-val {
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-primary);
+  margin-top: 4px;
+}
+
+.ews-kpi-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.ews-tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: var(--radius-pill);
+  font-size: 0.73rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ews-tier-high { background: var(--danger-bg); color: var(--danger); }
+.ews-tier-medium { background: var(--warning-bg); color: var(--warning); }
+.ews-tier-low { background: var(--success-bg); color: var(--success); }
+
+.ews-score-meter {
+  width: 100%;
+  min-width: 90px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.ews-score-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 350ms ease;
+}
+.ews-score-fill.fill-high { background: var(--danger); }
+.ews-score-fill.fill-medium { background: var(--warning); }
+.ews-score-fill.fill-low { background: var(--success); }
+
+.ews-factor-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+.ews-factor-list li + li { margin-top: 3px; }
+
+.ews-advice-box {
+  background: var(--amber-soft);
+  border: 1px solid rgba(217, 119, 6, 0.22);
+  border-radius: 10px;
+  box-shadow: none;
+  padding: 11px 15px;
+  font-size: 0.83rem;
+  color: var(--text-primary);
+}
+
+.ews-widget-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom: 4px solid var(--primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 18px 22px;
+  margin-bottom: 1.5rem;
+}

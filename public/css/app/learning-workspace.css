@@ -1,0 +1,522 @@
+/* ============================================================
+   AKSARA — Separated Modul, Materi & Tugas Workspace + 3D Tabs
+   Clearly differentiates:
+   1. Modul Bacaan (.lw-modul-card — Indigo Chapter Reader)
+   2. Berkas Materi (.lw-materi-card — Sage 2-Column File Grid)
+   3. Tugas & Evaluasi (.lw-tugas-card — Amber/Blue Deadline Card)
+   ============================================================ */
+
+/* ── 3D Recessed Track + Raised Active Tab Switcher ───────── */
+.learning-3d-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--bg-track);
+  box-shadow: var(--shadow-3d-track);
+  border: 1px solid var(--border);
+}
+
+.lw-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border-radius: 10px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border: 1px solid transparent;
+  background: transparent;
+  transition: all 0.18s ease;
+  cursor: pointer;
+}
+
+.lw-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.45);
+}
+[data-theme="dark"] .lw-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.lw-tab-btn.is-active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border);
+  box-shadow: var(--shadow-3d-pill);
+  transform: translateY(-1px);
+}
+
+.lw-tab-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
+}
+[data-theme="dark"] .lw-tab-dot {
+  box-shadow: none;
+}
+.dot-modul { background: #4f46e5; }
+.dot-materi { background: #15803d; }
+.dot-tugas { background: #d97706; }
+.dot-presensi { background: #2563eb; }
+.dot-siswa { background: #1a2842; }
+[data-theme="dark"] .dot-siswa { background: #94a3b8; }
+
+.lw-tab-count {
+  font-size: 0.71rem;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.07);
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .lw-tab-count {
+  background: rgba(255, 255, 255, 0.1);
+}
+.lw-tab-btn.is-active .lw-tab-count {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.lw-search-inline {
+  min-width: 270px;
+}
+
+/* Pane Visibility (Progressive Enhancement — keeps full DOM for SSR/tests) */
+[data-lw-root][data-lw-ready="true"] .lw-pane:not(.is-active) {
+  display: none;
+}
+[data-lw-root][data-lw-ready="true"] .lw-pane.is-active {
+  animation: aksaraFadeUp 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── 3D Summary KPI Cards on /learning Hub ────────────────── */
+.lw-hub-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 767.98px) {
+  .lw-hub-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lw-hub-kpi {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom: 4px solid var(--border-strong);
+  box-shadow: var(--shadow-3d-card);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.lw-hub-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+.lw-hub-kpi:active {
+  transform: translateY(1px);
+}
+
+.lw-kpi-modul { border-bottom-color: #4f46e5; }
+.lw-kpi-materi { border-bottom-color: #15803d; }
+.lw-kpi-tugas { border-bottom-color: #d97706; }
+
+.lw-kpi-modul.is-selected { border-color: #4f46e5; background: linear-gradient(180deg, var(--bg-card) 0%, rgba(79, 70, 229, 0.05) 100%); }
+.lw-kpi-materi.is-selected { border-color: #15803d; background: linear-gradient(180deg, var(--bg-card) 0%, rgba(21, 128, 61, 0.05) 100%); }
+.lw-kpi-tugas.is-selected { border-color: #d97706; background: linear-gradient(180deg, var(--bg-card) 0%, rgba(217, 119, 6, 0.05) 100%); }
+
+.lw-hub-kpi-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-3d-icon);
+}
+.lw-kpi-modul .lw-hub-kpi-icon { background: #e0e7ff; color: #4338ca; }
+.lw-kpi-materi .lw-hub-kpi-icon { background: var(--sage-soft); color: var(--sage); }
+.lw-kpi-tugas .lw-hub-kpi-icon { background: var(--amber-soft); color: var(--amber); }
+[data-theme="dark"] .lw-kpi-modul .lw-hub-kpi-icon { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+
+.lw-hub-kpi-label {
+  font-size: 0.77rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.lw-hub-kpi-val {
+  font-size: 1.42rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.lw-hub-kpi-val span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* ── Color-Coded 3D Teacher Create Buttons ────────────────── */
+.btn-modul-action {
+  background: linear-gradient(180deg, #6366f1 0%, #4338ca 100%);
+  border-color: #4338ca;
+  color: #ffffff;
+  box-shadow: 0 3px 0 #312e81, 0 6px 14px -3px rgba(67, 56, 202, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.btn-modul-action:hover {
+  background: linear-gradient(180deg, #4f46e5 0%, #3730a3 100%);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+.btn-modul-action:active { transform: translateY(2px); box-shadow: 0 1px 0 #312e81; }
+
+.btn-materi-action,
+.btn-materi-dl {
+  background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+  border-color: #15803d;
+  color: #ffffff;
+  box-shadow: 0 3px 0 #14532d, 0 6px 14px -3px rgba(21, 128, 61, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.btn-materi-action:hover,
+.btn-materi-dl:hover {
+  background: linear-gradient(180deg, #15803d 0%, #166534 100%);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+.btn-materi-action:active,
+.btn-materi-dl:active { transform: translateY(2px); box-shadow: 0 1px 0 #14532d; }
+
+.btn-tugas-action {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  border-color: #d97706;
+  color: #ffffff;
+  box-shadow: 0 3px 0 #92400e, 0 6px 14px -3px rgba(217, 119, 6, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.btn-tugas-action:hover {
+  background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+.btn-tugas-action:active { transform: translateY(2px); box-shadow: 0 1px 0 #92400e; }
+
+/* ── Category Outer Shell ─────────────────────────────────── */
+.lw-category-shell {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3d-card);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.lw-theme-modul { border-top: 4px solid #4f46e5; }
+.lw-theme-materi { border-top: 4px solid #15803d; }
+.lw-theme-tugas { border-top: 4px solid #d97706; }
+.lw-theme-presensi { border-top: 4px solid var(--primary); }
+
+.lw-category-head {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card-alt);
+}
+
+.lw-head-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-3d-icon);
+}
+.lw-badge-modul { background: #e0e7ff; color: #4338ca; }
+.lw-badge-materi { background: var(--sage-soft); color: var(--sage); }
+.lw-badge-tugas { background: var(--amber-soft); color: var(--amber); }
+.lw-badge-presensi { background: var(--primary-soft); color: var(--primary); }
+[data-theme="dark"] .lw-badge-modul { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+
+.lw-count-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.lw-count-modul { background: #e0e7ff; color: #4338ca; }
+.lw-count-materi { background: var(--sage-soft); color: var(--sage); }
+.lw-count-tugas { background: var(--amber-soft); color: var(--amber); }
+[data-theme="dark"] .lw-count-modul { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+
+.lw-category-body {
+  padding: 20px 22px;
+}
+
+/* Shared Category Tags & Subject Pills */
+.lw-type-tag {
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.lw-tag-modul { background: #e0e7ff; color: #3730a3; }
+.lw-tag-materi { background: var(--sage-soft); color: var(--sage); }
+.lw-tag-tugas { background: var(--amber-soft); color: #b45309; }
+[data-theme="dark"] .lw-tag-modul { background: rgba(99, 102, 241, 0.22); color: #c7d2fe; }
+[data-theme="dark"] .lw-tag-tugas { color: #fbbf24; }
+
+.lw-class-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.lw-class-pill:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.lw-item-title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 2px 0 4px;
+}
+
+/* ── 1. MODUL BACAAN CARD (Chapter Reader Style) ──────────── */
+.lw-modul-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 4px solid #4f46e5;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 14px;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.lw-modul-card:last-child { margin-bottom: 0; }
+.lw-modul-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: #a5b4fc;
+  border-left-color: #4f46e5;
+}
+
+.lw-modul-num {
+  width: 58px;
+  min-height: 58px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #4f46e5 0%, #312e81 100%);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 0 #1e1b4b, 0 8px 14px -4px rgba(67, 56, 202, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.lw-modul-num small {
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+}
+.lw-modul-num strong {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.lw-modul-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.lw-modul-reader {
+  border-radius: 10px;
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  box-shadow: inset 1px 2px 4px rgba(15, 23, 42, 0.04);
+}
+.lw-modul-reader summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #4338ca;
+  cursor: pointer;
+  list-style: none;
+}
+[data-theme="dark"] .lw-modul-reader summary {
+  color: #a5b4fc;
+}
+.lw-modul-reader summary::-webkit-details-marker { display: none; }
+.lw-modul-reader[open] summary svg {
+  transform: rotate(90deg);
+}
+.lw-modul-reader summary svg {
+  transition: transform 0.18s ease;
+}
+.lw-modul-text {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+  line-height: 1.72;
+  color: var(--text-primary);
+}
+
+/* ── 2. BERKAS MATERI CARD (2-Column Document Repository) ─── */
+.lw-materi-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom: 4px solid #15803d;
+  box-shadow: var(--shadow-3d-card);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.lw-materi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.lw-file-badge {
+  width: 54px;
+  height: 58px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #16a34a 0%, #14532d 100%);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex-shrink: 0;
+  box-shadow: 0 3px 0 #052e16, 0 6px 12px -3px rgba(21, 128, 61, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.lw-file-badge span {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.lw-filename-chip {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.lw-materi-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── 3. TUGAS & EVALUASI CARD (Deadline & Action Card) ────── */
+.lw-tugas-card {
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 5px solid #d97706;
+  box-shadow: var(--shadow-3d-card);
+  margin-bottom: 14px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.lw-tugas-card:last-child { margin-bottom: 0; }
+.lw-tugas-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+.lw-tugas-card.is-overdue {
+  border-left-color: var(--danger);
+}
+
+.lw-tugas-meta-strip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 9px;
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border);
+  box-shadow: inset 1px 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.lw-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.79rem;
+  color: var(--text-secondary);
+}
+.lw-meta-chip + .lw-meta-chip::before {
+  content: '·';
+  margin-right: 4px;
+  color: var(--border-strong);
+  font-weight: 800;
+}
+.lw-meta-chip.is-danger {
+  color: var(--danger);
+}
+
+@media (max-width: 575.98px) {
+  .lw-modul-card {
+    flex-direction: column;
+  }
+  .lw-modul-num {
+    flex-direction: row;
+    gap: 6px;
+    width: auto;
+    min-height: 0;
+    padding: 5px 12px;
+  }
+  .lw-search-inline {
+    width: 100%;
+    min-width: 0;
+  }
+}
+

@@ -1,0 +1,352 @@
+/* ============================================================
+   AKSARA — Landing Page Sections & Footer
+   Blends Pola 1 (Elevated Banner Feature Cards) & Pola 3 (KPI + Summary)
+   ============================================================ */
+
+/* ─── POLA 3: STAT STRIP SEKOLAH (Bottom Accent + Clean Surface) ─── */
+.ln-stat-strip {
+  padding: 34px 0 14px;
+  background: var(--bg-page);
+}
+.ln-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+.ln-stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom: 4px solid var(--navy);
+  border-radius: var(--r-lg);
+  box-shadow: 0 8px 20px -6px rgba(15, 23, 42, 0.08), 0 3px 0 rgba(203, 213, 225, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.ln-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+.ln-stat-card:nth-child(1) { border-bottom-color: var(--blue); }
+.ln-stat-card:nth-child(2) { border-bottom-color: var(--amber); }
+.ln-stat-card:nth-child(3) { border-bottom-color: var(--sage); }
+.ln-stat-card:nth-child(4) { border-bottom-color: var(--navy); }
+
+.ln-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 4px 4px 10px rgba(15, 23, 42, 0.09), -2px -2px 6px rgba(255, 255, 255, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+[data-theme="dark"] .ln-stat-icon {
+  box-shadow: 4px 4px 10px rgba(2, 6, 23, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+.ln-stat-icon.ic-blue { background: var(--blue-bg); color: var(--blue); }
+.ln-stat-icon.ic-amber { background: var(--amber-bg); color: var(--amber); }
+.ln-stat-icon.ic-sage { background: var(--sage-bg); color: var(--sage); }
+.ln-stat-icon.ic-plum { background: var(--plum-bg); color: var(--plum); }
+
+.ln-stat-num {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  line-height: 1.1;
+}
+.ln-stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+/* ─── POLA 1: FITUR UNGGULAN SEKOLAH (Elevated Top Banner Cards) ─── */
+.features {
+  padding: 64px 0 72px;
+  background: var(--bg-page);
+}
+.section-head-split {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 42px;
+}
+.section-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--blue);
+  margin-bottom: 6px;
+}
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+.section-desc {
+  font-size: 0.92rem;
+  color: var(--text-light);
+  max-width: 500px;
+  margin-bottom: 32px;
+}
+
+.feat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px 24px;
+}
+.feat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  padding: 0 24px 24px;
+  margin-top: 14px;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  position: relative;
+  overflow: visible;
+}
+.feat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Elevated Header Banner (Reference Image 1 Style) */
+.feat-top {
+  margin: -14px -4px 18px;
+  padding: 15px 18px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #3b82f6 100%);
+  box-shadow: 0 10px 20px -6px rgba(37, 99, 235, 0.35);
+}
+.feat-card:nth-child(2) .feat-top {
+  background: linear-gradient(135deg, #1a2842 0%, #253a56 60%, #1e4e79 100%);
+  box-shadow: 0 10px 20px -6px rgba(26, 40, 66, 0.32);
+}
+.feat-card:nth-child(3) .feat-top {
+  background: linear-gradient(135deg, #14532d 0%, #15803d 65%, #16a34a 100%);
+  box-shadow: 0 10px 20px -6px rgba(21, 128, 61, 0.28);
+}
+.feat-card:nth-child(4) .feat-top {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 60%, #4f46e5 100%);
+  box-shadow: 0 10px 20px -6px rgba(55, 48, 163, 0.30);
+}
+
+.feat-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feat-step-tag {
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  background: rgba(15, 23, 42, 0.26);
+  color: #ffffff;
+}
+
+.feat-card h3 {
+  font-size: 1.06rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.feat-card p {
+  font-size: 0.86rem;
+  color: var(--text-body);
+  line-height: 1.6;
+}
+
+/* ─── PERAN WARGA SEKOLAH & POLA 3 RINGKASAN SEMESTER ────── */
+.why-section {
+  padding: 72px 0;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.why-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 44px;
+  align-items: center;
+}
+.why-list { list-style: none; }
+.why-list li {
+  display: flex;
+  gap: 14px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+}
+.why-list li:last-child { border-bottom: none; }
+.why-list-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: none;
+}
+.why-list li:nth-child(1) .why-list-icon { background: var(--blue-bg); color: var(--blue); }
+.why-list li:nth-child(2) .why-list-icon { background: var(--sage-bg); color: var(--sage); }
+.why-list li:nth-child(3) .why-list-icon { background: var(--amber-bg); color: var(--amber); }
+
+.why-list h4 {
+  font-size: 0.96rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.why-list p {
+  font-size: 0.84rem;
+  color: var(--text-body);
+  line-height: 1.55;
+}
+
+.why-visual {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.why-visual-inner {
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border);
+  border-bottom: 4px solid var(--navy);
+  border-radius: var(--r-xl);
+  padding: 26px;
+  box-shadow: var(--shadow-md);
+}
+.d-flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.wv-head-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+.wv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.84rem;
+}
+.wv-row:last-child { border-bottom: none; }
+.wv-pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.wv-pill-blue { background: var(--blue-bg); color: var(--blue); }
+.wv-pill-sage { background: var(--sage-bg); color: var(--sage); }
+.wv-pill-amber { background: var(--amber-bg); color: var(--amber); }
+
+/* ─── CTA & FOOTER ─────────────────────────────────────── */
+.cta {
+  padding: 64px 0;
+  background: linear-gradient(135deg, var(--navy) 0%, #1e426c 60%, #2563eb 100%);
+  text-align: center;
+}
+.cta h2 {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+.cta p {
+  font-size: 0.96rem;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 520px;
+  margin: 0 auto 26px;
+}
+
+.ln-footer {
+  padding: 48px 0 24px;
+  background: #0f172a;
+  color: rgba(255, 255, 255, 0.65);
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.footer-brand-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+  background: #ffffff;
+  object-fit: contain;
+  padding: 2px;
+}
+.footer-brand-name {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #ffffff;
+}
+.footer-about {
+  font-size: 0.83rem;
+  line-height: 1.6;
+  max-width: 320px;
+}
+.footer-col h4 {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 14px;
+}
+.footer-col a {
+  display: block;
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 4px 0;
+}
+.footer-col a:hover { color: #ffffff; }
+.footer-bottom {
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.76rem;
+}
+
+@media (max-width: 968px) {
+  .ln-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .ln-topbar-meta, .ln-topbar-sep { display: none; }
+}
+@media (max-width: 640px) {
+  .ln-stat-grid { grid-template-columns: 1fr; }
+}

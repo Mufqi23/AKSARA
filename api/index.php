@@ -2,7 +2,7 @@
 
 // Vercel invokes this function for dynamic requests. Keep Laravel's public
 // front controller as the single HTTP entry point.
-$storage = sys_get_temp_dir().'/uep-lms';
+$storage = sys_get_temp_dir().'/aksara';
 
 foreach (['app/private', 'framework/cache/data', 'framework/sessions', 'framework/views', 'logs'] as $directory) {
     if (! is_dir($storage.'/'.$directory) && ! @mkdir($storage.'/'.$directory, 0775, true) && ! is_dir($storage.'/'.$directory)) {

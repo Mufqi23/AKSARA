@@ -1,0 +1,262 @@
+/* ============================================================
+   AKSARA — Workspace Topbar, Header & Breadcrumb Layout
+   ============================================================ */
+
+.app-workspace {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.workspace-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  background: var(--bg-nav);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 13px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.workspace-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.workspace-welcome-title {
+  font-family: var(--font-heading);
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.workspace-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.workspace-year-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  font-size: 0.79rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  box-shadow: 0 2px 0 var(--border-strong), 0 4px 10px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+.workspace-year-pill svg {
+  color: var(--primary);
+}
+
+/* User chip in topbar with subtle 3D tactile cushion */
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 2px 0 var(--border-strong), 0 4px 10px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: all var(--transition);
+}
+.user-chip:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-card-alt);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+.user-chip:active {
+  transform: translateY(1px);
+}
+.user-chip-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--navy), var(--primary));
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* Tactile 3D square icon button */
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  box-shadow: 0 2px 0 var(--border-strong), 0 4px 8px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  padding: 0;
+}
+.icon-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+.icon-btn:active {
+  transform: translateY(1px);
+}
+.icon-btn svg { width: 16px; height: 16px; }
+
+/* Mobile hamburger menu */
+.mobile-menu-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  box-shadow: none;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+.mobile-menu-btn svg { width: 18px; height: 18px; }
+
+.mobile-nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(3px);
+  z-index: 1035;
+}
+.mobile-nav-backdrop.open { display: block; }
+
+/* ── Main Content Container & Page Animations ────────────── */
+.page-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 26px 32px 48px;
+  flex: 1;
+}
+
+@keyframes aksaraFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-in {
+  animation: aksaraFadeUp 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Breadcrumbs */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  list-style: none;
+  padding: 0;
+}
+.breadcrumb-item + .breadcrumb-item::before {
+  content: '›';
+  color: var(--border-strong);
+  margin-right: 6px;
+  font-weight: 600;
+}
+.breadcrumb-item a { color: var(--text-secondary); }
+.breadcrumb-item a:hover { color: var(--primary); }
+.breadcrumb-item.active { color: var(--text-primary); font-weight: 600; }
+
+/* ── Page Header / Welcome ───────────────────────────────── */
+.page-welcome {
+  margin-bottom: 24px;
+}
+.page-welcome-date {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.page-welcome-date svg { width: 14px; height: 14px; }
+.page-welcome h1 { margin-bottom: 6px; }
+.page-welcome p {
+  color: var(--text-secondary);
+  font-size: 0.91rem;
+  max-width: 640px;
+  margin: 0;
+}
+.page-welcome-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.page-welcome-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  margin-bottom: 6px;
+}
+.role-admin { background: var(--plum-soft); color: var(--plum); }
+.role-teacher { background: var(--blue-soft); color: var(--blue); }
+.role-student { background: var(--teal-soft); color: var(--teal); }
+
+.student-info-bar {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-xs);
+  font-size: 0.82rem;
+  margin-top: 10px;
+}
+.student-info-bar .divider {
+  width: 1px;
+  height: 14px;
+  background: var(--border-strong);
+}

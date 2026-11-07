@@ -1,0 +1,265 @@
+/* ============================================================
+   AKSARA — Login & 2FA Split Layout + Clean Surface Card (Pola 2)
+   Replaces 3D Neumorphic Box with Crisp White Card & Soft Icon Badge
+   ============================================================ */
+
+.login-split {
+  display: grid;
+  grid-template-columns: 54% 46%;
+  min-height: 100vh;
+}
+
+/* Left Academic Brand Panel */
+.login-left {
+  background: linear-gradient(155deg, #111d33 0%, var(--navy) 40%, #1e426c 78%, #2563eb 100%);
+  padding: 48px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+.login-left::before {
+  content: '';
+  position: absolute;
+  top: -25%;
+  right: -20%;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.2), transparent 65%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.login-left::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -15%;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(21, 128, 61, 0.16), transparent 65%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.login-shapes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.login-shapes .ls {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+}
+.login-shapes .ls-1 { width: 200px; height: 200px; top: 8%; right: 5%; }
+.login-shapes .ls-2 { width: 80px; height: 80px; bottom: 20%; right: 15%; border-radius: var(--r); transform: rotate(35deg); }
+.login-shapes .ls-3 { width: 120px; height: 120px; bottom: 5%; left: 10%; }
+
+.login-left-content {
+  position: relative;
+  z-index: 2;
+  max-width: 480px;
+}
+
+.login-left .ln-logo {
+  margin-bottom: 44px;
+}
+.login-left h1 {
+  font-size: 2.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 14px;
+  line-height: 1.16;
+}
+.login-left h1 em {
+  font-style: normal;
+  color: #fcd34d;
+}
+.login-left-desc {
+  font-size: 0.96rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.72);
+  margin-bottom: 34px;
+}
+
+.login-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.login-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 15px 18px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--r-lg);
+  transition: background 0.2s;
+}
+.login-features li:hover {
+  background: rgba(255, 255, 255, 0.11);
+}
+.lf-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.lf-icon.lfi-blue { background: rgba(59, 130, 246, 0.26); color: #bfdbfe; }
+.lf-icon.lfi-amber { background: rgba(245, 158, 11, 0.26); color: #fde68a; }
+.lf-icon.lfi-sage { background: rgba(34, 197, 94, 0.26); color: #bbf7d0; }
+
+.login-features h4 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 3px;
+}
+.login-features p {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.45;
+}
+
+/* Right Panel — Clean Cool Slate Canvas */
+.login-right {
+  background: var(--bg-page);
+  padding: 40px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.login-form-wrap {
+  width: 100%;
+  max-width: 410px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* ─── Pola 2: Clean Minimalist Surface Login Card ─────────── */
+.uiv-card,
+.auth-surface-card {
+  width: 100%;
+  padding: 32px 30px 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.login-card-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+/* Soft pastel circular icon badge (Reference Image 2 style) */
+.login-badge-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--blue-bg);
+  color: var(--blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.uiv-singup {
+  color: var(--text-dark);
+  display: block;
+  font-weight: 800;
+  font-size: 1.32rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.uiv-sub,
+.login-subtitle {
+  font-size: 0.83rem;
+  color: var(--text-light);
+  margin-top: 5px;
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.login-field label {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.login-input-wrap {
+  position: relative;
+}
+
+.login-field input[type="email"],
+.login-field input[type="password"],
+.login-field input[type="text"] {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  background: var(--bg-card);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-input-wrap input {
+  padding-right: 42px !important;
+}
+
+.login-field input:hover {
+  border-color: #94a3b8;
+}
+
+.login-field input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.uiv-eye-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-light);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.2s, background-color 0.2s;
+}
+.uiv-eye-btn:hover {
+  color: var(--blue);
+  background: var(--blue-bg);
+}

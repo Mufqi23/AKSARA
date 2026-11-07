@@ -22,7 +22,7 @@ class AttendanceService
     {
         Access::classroom($user, $session->classroom, true);
         if ($user->role !== 'admin' && $session->date->lt(today()->subDays(7))) {
-            throw ValidationException::withMessages(['date' => 'Attendance older than seven days requires an administrator correction.']);
+            throw ValidationException::withMessages(['date' => 'Perubahan kehadiran lebih dari 7 hari yang lalu hanya dapat dilakukan oleh Admin Sekolah.']);
         }
     }
 
@@ -36,7 +36,7 @@ class AttendanceService
             AttendanceSession::whereKey($session->id)->lockForUpdate()->first();
             $record = AttendanceRecord::where('attendance_session_id', $session->id)->where('student_id', $studentId)->first();
             if ($record && ! $update) {
-                throw ValidationException::withMessages(['student_id' => 'Attendance record already exists.']);
+                throw ValidationException::withMessages(['student_id' => 'Catatan kehadiran siswa ini sudah ada pada sesi ini.']);
             }
             if (! $record && $update) {
                 abort(404);
@@ -80,7 +80,7 @@ class AttendanceService
     private static function prepare(User $user, AttendanceSession $session, array $data): array
     {
         if ($user->role === 'admin' && blank($data['reason'] ?? null)) {
-            throw ValidationException::withMessages(['reason' => 'Administrator corrections require a reason.']);
+            throw ValidationException::withMessages(['reason' => 'Perubahan kehadiran oleh Admin wajib disertai alasan.']);
         }
         if (isset($data['minutes_late']) && in_array($data['status'], ['present', 'late'])) {
             $data['status'] = $data['minutes_late'] >= $session->late_threshold ? 'late' : 'present';
@@ -95,7 +95,7 @@ class AttendanceService
         $before = $record?->only(['status', 'minutes_late', 'remarks']);
         $record ??= new AttendanceRecord(['attendance_session_id' => $session->id, 'student_id' => $studentId]);
         $record->fill(collect($data)->only(['status', 'minutes_late', 'remarks'])->all())->save();
-        AttendanceLog::create(['attendance_record_id' => $record->id, 'user_id' => $user->id, 'before' => $before, 'after' => $record->only(['status', 'minutes_late', 'remarks']), 'reason' => $data['reason'] ?? ($update ? 'Teacher correction' : 'Initial attendance')]);
+        AttendanceLog::create(['attendance_record_id' => $record->id, 'user_id' => $user->id, 'before' => $before, 'after' => $record->only(['status', 'minutes_late', 'remarks']), 'reason' => $data['reason'] ?? ($update ? 'Perbaikan oleh guru' : 'Pencatatan awal')]);
 
         return $record;
     }

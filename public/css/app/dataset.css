@@ -1,0 +1,200 @@
+/* ============================================================
+   AKSARA — Pusat Ekspor & Impor Dataset Sekolah Terpadu
+   Clean Surface (Pola 2) & Highlight Bottom-Bar Card (Pola 3)
+   ============================================================ */
+
+.dsh-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 13px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid rgba(var(--primary-rgb), 0.16);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.dsh-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 991.98px) {
+  .dsh-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 575.98px) {
+  .dsh-kpi-grid { grid-template-columns: 1fr; }
+}
+
+.dsh-kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom: 4px solid var(--navy);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3d-card);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dsh-kpi-card:nth-child(1) { border-bottom-color: var(--primary); }
+.dsh-kpi-card:nth-child(2) { border-bottom-color: var(--amber); }
+.dsh-kpi-card:nth-child(3) { border-bottom-color: var(--sage); }
+.dsh-kpi-card:nth-child(4) { border-bottom-color: var(--navy); }
+
+.dsh-kpi-label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.dsh-kpi-val {
+  font-size: 1.48rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.dsh-kpi-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-3d-icon);
+}
+.dsh-kpi-icon.is-blue { background: var(--blue-soft); color: var(--blue); }
+.dsh-kpi-icon.is-sage { background: var(--sage-soft); color: var(--sage); }
+.dsh-kpi-icon.is-amber { background: var(--amber-soft); color: var(--amber); }
+.dsh-kpi-icon.is-plum { background: var(--plum-soft); color: var(--plum); }
+
+/* Pola 3: Highlight Strip + Bottom Navy Accent Card */
+.dsh-bundle-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom: 4px solid var(--navy);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 24px 26px;
+}
+
+.dsh-bundle-highlight {
+  background: var(--amber-soft);
+  border: 1px solid rgba(217, 119, 6, 0.22);
+  border-radius: 12px;
+  padding: 12px 15px;
+  margin-bottom: 14px;
+}
+
+.dsh-check-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.dsh-check-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+.dsh-check-list svg {
+  color: var(--sage);
+  flex-shrink: 0;
+}
+
+.dsh-sheet-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dsh-sheet-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+  border: 1px solid rgba(217, 119, 6, 0.28);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dsh-module-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+@media (max-width: 991.98px) {
+  .dsh-module-grid { grid-template-columns: 1fr; }
+}
+
+/* Pola 2: Clean Module Surface Cards */
+.dsh-module-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.dsh-module-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.dsh-module-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.dsh-module-badge.is-classroom {
+  background: var(--sage-soft);
+  color: var(--sage);
+}
+
+.dsh-action-box {
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.dsh-preview-banner {
+  background: var(--amber-soft);
+  border: 1px solid rgba(217, 119, 6, 0.28);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.dsh-col-list {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  word-break: break-word;
+}

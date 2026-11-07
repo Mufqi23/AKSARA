@@ -19,8 +19,8 @@ class Invitation extends Notification
     {
         $url = URL::temporarySignedRoute('activate', now()->addMinutes(60), ['user' => $notifiable->id, 'token' => $this->token]);
 
-        return (new MailMessage)->subject('Activate your campus account')->greeting('Hello '.$notifiable->name)
-            ->line('Your administrator created an LMS account. Confirm this email address and choose your password to activate it.')
-            ->action('Activate account', $url)->line('This invitation expires in 60 minutes. Ask your administrator to resend it if needed.');
+        return (new MailMessage)->subject('Aktivasi Akun Portal Akademik Sekolah AKSARA')->greeting('Halo '.$notifiable->name.',')
+            ->line('Admin Sekolah telah membuatkan akun AKSARA untuk Anda. Konfirmasi alamat email ini dan buat kata sandi baru untuk mengaktifkan akun.')
+            ->action('Aktifkan Akun', $url)->line('Tautan undangan ini berlaku selama 60 menit. Hubungi Admin Sekolah jika Anda memerlukan pengiriman ulang tautan.');
     }
 }

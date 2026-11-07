@@ -1,51 +1,66 @@
-# Verification record
+# Panduan Pengujian Otomatis
 
-Verified on 27 September 2026.
+## Ringkasan
 
-| Check | Result |
+| Item | Keterangan |
 | --- | --- |
-| PHP runtime | 8.2.12 |
-| Laravel framework | 12.69.2 (locked in Composer) |
-| SQLite feature suite | 38 tests, 291 assertions, all passing |
-| MySQL feature suite | MySQL 8.4.3: 38 tests, 291 assertions, all passing |
-| Application PHP syntax | 74 files checked, zero syntax errors |
-| Composer manifest | Valid |
-| Composer dependency audit | No known advisories reported at build time |
-| Laravel production caches | Configuration, events, routes and Blade views compiled successfully |
-| Browser checks | Admin/student/teacher login, desktop dashboard, teacher attendance, admin academic-year dates, student timed quiz and score, mobile reports/menu |
-| Browser console | No errors in the inspected final pages |
-| Mobile width | Attendance report checked at 390px viewport; no document horizontal overflow |
+| Perintah | `php artisan test` (alternatif: `composer test`) |
+| Hasil terverifikasi saat ini | **146 kasus uji, 3.253 assertion**, semuanya lulus (`100% PASS`) |
+| Basis data bawaan pengujian | SQLite `:memory:` (dikonfigurasi di `phpunit.xml`) |
+| Runtime | PHP 8.2+ dengan ekstensi `pdo_sqlite` aktif |
 
-MySQL **8.4.3** was available and tested. MySQL 8.2 was not installed and was not separately verified. The PHP runtime was **8.2.12**; PHP and MySQL version numbers are distinct.
-
-## Coverage
-
-The feature suite exercises login/logout/invalid login/throttling, suspension and deleted accounts, verification signatures, single-use activation, password reset/change, profile field restrictions, all admin catalog list/create/edit views, program/block/subject CRUD, duplicate email, prohibited role escalation, automatic enrollment, schedule conflicts, all role dashboards and common pages, class/content IDOR denial, published/draft lessons, private downloads, invalid and oversized uploads, late/versioned submissions, grading bounds and ownership, quiz scoring and answer secrecy, expiry, duplicate/multiple attempts, empty/unavailable quizzes, question creation/publishing/locking, attendance duplicates and 14/15-minute thresholds, configurable thresholds, seven-day editing boundaries, old/future attendance, admin reasons, audit entries, excuse review, N/A attendance, report ownership and pagination, PDF/XLSX exports for all report types, audience-scoped announcements, idempotent reminders, and CSRF enforcement outside the test environment.
-
-The browser demonstration completed a three-question quiz and displayed **15 / 15 points**. These demonstration interactions are not included as pre-consumed quiz attempts in the ZIP; fresh seeding creates unused attempts.
-
-## Reproduce
+## Menjalankan Pengujian
 
 ```sh
 composer install
-composer test
+php artisan test
 ```
 
-The default `phpunit.xml` uses SQLite `:memory:`. Tests do not use the normal cached application configuration. The base test class refuses to proceed against any database except `:memory:` or a database whose name ends with `_test`.
+Pengujian berjalan secara terisolasi tanpa mengubah basis data aplikasi. Kelas dasar `tests/TestCase.php` secara ketat menolak eksekusi pengujian pada basis data apa pun selain `:memory:` atau basis data yang berakhiran `_test`.
 
-For MySQL, create a **dedicated disposable** database such as `uep_lms_test`, copy `phpunit.xml` to `phpunit.mysql.xml`, and change/add only its DB environment entries:
+### Menjalankan dengan MySQL Khusus Uji
 
-```xml
-<env name="DB_CONNECTION" value="mysql"/>
-<env name="DB_DATABASE" value="uep_lms_test"/>
-<env name="DB_HOST" value="127.0.0.1"/>
-<env name="DB_PORT" value="3306"/>
-<env name="DB_USERNAME" value="your_test_database_user"/>
-<env name="DB_PASSWORD" value="your_test_database_password"/>
-```
+1. Buat basis data **khusus pengujian**, misalnya `aksara_test`.
+2. Salin `phpunit.xml` menjadi `phpunit.mysql.xml`, lalu sesuaikan variabel DB berikut:
 
-Then run `php vendor/phpunit/phpunit/phpunit -c phpunit.mysql.xml`. The test suite migrates and rolls back its database for each feature test. Never point it at real academic data. Keep test credentials out of version control.
+   ```xml
+   <env name="DB_CONNECTION" value="mysql"/>
+   <env name="DB_DATABASE" value="aksara_test"/>
+   <env name="DB_HOST" value="127.0.0.1"/>
+   <env name="DB_PORT" value="3306"/>
+   <env name="DB_USERNAME" value="your_test_database_user"/>
+   <env name="DB_PASSWORD" value="your_test_database_password"/>
+   ```
 
-## Verification limits
+3. Jalankan:
 
-External SMTP delivery, a public HTTPS deployment, load testing, and MySQL 8.2 were not tested. Mail generation and activation/reset behavior were tested using Laravel's test notification/mail facilities. Configure SMTP and run a real delivery check on your own hosting before distributing accounts. UI verification sampled the principal workflows and responsive breakpoints; automated rendering checks cover the application views listed above. The application has not undergone an independent penetration test.
+   ```sh
+   php vendor/phpunit/phpunit/phpunit -c phpunit.mysql.xml
+   ```
+
+Jangan pernah mengarahkan konfigurasi pengujian ke basis data sekolah sungguhan.
+
+## Daftar Test Suites (13 Berkas Uji Fitur + Unit)
+
+| Berkas Uji | Cakupan Utama |
+| --- | --- |
+| `ExampleTest` | Halaman depan (*landing page*) sekolah, indikator statistik, dan ketiadaan komponen lama |
+| `SchoolDatasetHubTest` | Pusat Ekspor & Impor Dataset Sekolah: RBAC 403 Siswa, cakupan kelas Guru, Buku Kerja Terpadu 7-Sheet `.xlsx`, CSV `;`, dan proteksi bentrok/injeksi |
+| `EarlyWarningSystemTest` | Mesin AI Deteksi Dini Siswa Berisiko, kalkulasi skor 4 faktor, otorisasi peran guru/siswa/admin, filter status, dan narasi pembimbingan |
+| `LmsTest` | Alur inti sekolah: autentikasi, katalog admin, materi pelajaran, tugas, evaluasi kuis, presensi harian, laporan, dan pengumuman |
+| `TwoFactorAuthTest` | Tantangan OTP email 2FA, masa berlaku 10 menit, dan pembatasan kirim ulang |
+| `CoreModulesTest` | Navigasi modul sekolah per peran, fitur lanjutan tersembunyi, dan proteksi hak akses |
+| `AcademicSetupServiceTest`, `AcademicSetupWizardTest` | Wizard penyiapan tahun ajaran, pratinjau, konfirmasi, dan *rollback* atomik |
+| `MultiProgramSetupTest` | Penyiapan beberapa jurusan sekaligus dan penempatan siswa CSV bercakupan |
+| `StudentCsvImportTest` | Validasi berkas CSV data siswa (NIS, nama, email, rombel) dan resolusi akun |
+| `TeacherWorkflowTest` | Presensi harian massal oleh guru, penilaian tugas massal, status draf/terbit, dan riwayat siswa |
+| `DashboardWorkflowTest` | Dasbor khusus Administrator Sekolah, Guru Pengajar, dan Siswa beserta cakupan datanya |
+| `CurriculumImportTest` | Impor mata pelajaran, beban JP, prasyarat, idempotensi, dan integritas data |
+
+## Cakupan Fungsional
+
+- **Autentikasi & Keamanan Akun:** login/logout, pembatasan laju (*rate limit*), 2FA OTP email, akun ditangguhkan/dihapus, aktivasi *signed URL* sekali pakai, reset kata sandi, dan proteksi profil.
+- **Tata Usaha / Admin Sekolah:** CRUD tahun ajaran, jurusan, tingkat kelas, rombel, mata pelajaran, siswa, guru, pendaftaran kelas otomatis, dan pencegahan bentrok jadwal mengajar guru maupun ruang kelas.
+- **Kelas & Kegiatan Belajar:** pembatasan akses antar-kelas (*anti-IDOR*), pertemuan terbit/draf, unduhan berkas bahan ajar privat, pengumpulan tugas berversi, serta batas poin penilaian.
+- **AI Peringatan Dini Siswa:** evaluasi kehadiran harian, ketepatan pengumpulan tugas, rata-rata nilai pelajaran, keaktifan evaluasi, serta isolasi visibilitas data antar-guru dan antar-siswa.
+- **Presensi & Laporan Sekolah:** ambang keterlambatan yang dapat diatur, jendela edit 7 hari bagi guru, log audit koreksi admin, tinjauan izin/sakit, serta ekspor laporan PDF dan Excel (`.xlsx`).

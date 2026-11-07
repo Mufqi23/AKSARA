@@ -71,34 +71,44 @@ class ClassController extends Controller
         $data = $r->validate(ClassContent::rules($kind, ! $id));
         unset($data['attachment']);
         $publish = $data['status'] === 'published' && $row->status !== 'published';
-        DB::transaction(function () use ($row, $kind, $id, &$data, $r, $classroom) {
+        $oldPath = $row->path ?? null;
+        $replacedPath = null;
+        DB::transaction(function () use ($row, $kind, $id, &$data, $r, $classroom, $oldPath, &$replacedPath) {
             if ($id) {
                 $row->newQuery()->whereKey($id)->lockForUpdate()->first();
             }
             if ($kind === 'quizzes') {
                 if ($id && $row->attempts()->exists()) {
-                    throw ValidationException::withMessages(['quiz' => 'A quiz with attempts is locked to preserve grading. Create a new quiz instead.']);
+                    throw ValidationException::withMessages(['quiz' => 'Kuis yang sudah dikerjakan siswa telah dikunci agar nilai tetap akurat. Silakan buat kuis baru.']);
                 }
                 if ($data['status'] === 'published' && (! $id || ! $row->questions()->exists())) {
-                    throw ValidationException::withMessages(['status' => 'Save as draft, add questions, then publish the quiz.']);
+                    throw ValidationException::withMessages(['status' => 'Simpan sebagai draf terlebih dahulu, tambahkan soal, lalu terbitkan kuis.']);
                 }
             }
             if ($kind === 'assignments' && $id && $row->submissions()->where('score', '>', $data['total_points'])->exists()) {
-                throw ValidationException::withMessages(['total_points' => 'Points cannot be lower than an existing score.']);
+                throw ValidationException::withMessages(['total_points' => 'Nilai maksimal tidak boleh lebih kecil dari nilai siswa yang sudah tercatat.']);
             }
-            $data += Files::upload($r);
+            $uploaded = Files::upload($r);
+            if ($id && ! empty($uploaded['path']) && $oldPath && $oldPath !== $uploaded['path']) {
+                $replacedPath = $oldPath;
+            }
+            $data += $uploaded;
             $row->fill($data + ['teacher_assignment_id' => $classroom->id])->save();
             if ($kind === 'assignments') {
                 Grade::where('source_type', 'assignment')->where('source_id', $row->id)->update(['title' => $row->title, 'total_points' => $row->total_points]);
             }
         });
+        if ($replacedPath) {
+            Storage::disk('local')->delete($replacedPath);
+        }
         if ($publish && in_array($kind, ['assignments', 'quizzes'])) {
+            $noticeLabel = $kind === 'assignments' ? 'Tugas baru' : 'Kuis baru';
             foreach ($classroom->enrollments()->with('student.user')->get() as $enrollment) {
-                $enrollment->student->user?->notify(new PortalNotice('New '.Str::singular($kind), $row->title, '/classes/'.$classroom->id));
+                $enrollment->student->user?->notify(new PortalNotice($noticeLabel, $row->title, '/classes/'.$classroom->id));
             }
         }
 
-        return redirect('/classes/'.$classroom->id)->with('success', 'Content saved.');
+        return redirect('/classes/'.$classroom->id)->with('success', 'Materi kelas berhasil disimpan.');
     }
 
     public function delete(Request $r, TeacherAssignment $classroom, string $kind, int $id)
@@ -106,18 +116,23 @@ class ClassController extends Controller
         Access::classroom($r->user(), $classroom, true);
         [$model] = ClassContent::definition($kind);
         $row = $model::where('teacher_assignment_id', $classroom->id)->findOrFail($id);
+        $oldPath = in_array($kind, ['materials', 'assignments'], true) ? ($row->path ?? null) : null;
         try {
             DB::transaction(function () use ($row, $kind) {
                 if ($kind === 'quizzes') {
-                    abort_if($row->attempts()->exists(), 422, 'Quizzes with attempts cannot be deleted.');
+                    abort_if($row->attempts()->exists(), 422, 'Kuis yang sudah dikerjakan siswa tidak dapat dihapus.');
                     $row->questions()->delete();
-                } $row->delete();
+                }
+                $row->delete();
             });
         } catch (QueryException $e) {
-            return back()->withErrors(['content' => 'This item has student work and cannot be deleted. Unpublish it instead.']);
+            return back()->withErrors(['content' => 'Item ini sudah memiliki hasil pekerjaan siswa sehingga tidak dapat dihapus. Ubah statusnya menjadi Draf bila ingin menyembunyikan.']);
+        }
+        if ($oldPath) {
+            Storage::disk('local')->delete($oldPath);
         }
 
-        return back()->with('success', 'Content deleted.');
+        return back()->with('success', 'Materi kelas berhasil dihapus.');
     }
 
     public function assignment(Request $r, Assignment $assignment)
@@ -136,7 +151,6 @@ class ClassController extends Controller
             $enrolledIds = $enrollments->pluck('student_id')->all();
             foreach ($submissions->unique('student_id') as $submission) {
                 if (! in_array($submission->student_id, $enrolledIds)) {
-                    // A roster projection keeps existing work accessible after an enrollment is removed.
                     $former = new Enrollment(['student_id' => $submission->student_id]);
                     $former->setRelation('student', $submission->student);
                     $former->setAttribute('former_enrollment', true);
@@ -155,7 +169,7 @@ class ClassController extends Controller
         abort_unless($assignment->status === 'published', 404);
         $r->validate(['answer' => ($assignment->allow_text ? 'nullable|string|max:100000' : 'prohibited'), 'attachment' => 'nullable|'.Files::RULE]);
         if (! $r->filled('answer') && ! $r->hasFile('attachment')) {
-            throw ValidationException::withMessages(['answer' => 'Provide an answer or upload a file.']);
+            throw ValidationException::withMessages(['answer' => 'Tuliskan jawaban atau unggah berkas tugas terlebih dahulu.']);
         }
         DB::transaction(function () use ($r, $assignment) {
             Student::whereKey($r->user()->student->id)->lockForUpdate()->first();
@@ -164,7 +178,7 @@ class ClassController extends Controller
             $assignment->submissions()->create(['student_id' => $r->user()->student->id, 'version' => $version, 'answer' => $r->input('answer'), 'submitted_at' => now(), 'is_late' => $late, 'status' => $late ? 'late' : 'submitted'] + Files::upload($r));
         });
 
-        return back()->with('success', config('lms.show_advanced_features') ? 'Submission saved. Earlier versions remain available.' : 'Submission saved. Your latest work is shown below.');
+        return back()->with('success', config('lms.show_advanced_features') ? 'Tugas berhasil dikumpulkan. Riwayat pengumpulan sebelumnya tetap tersimpan.' : 'Tugas berhasil dikumpulkan.');
     }
 
     public function grade(Request $r, AssignmentSubmission $submission)
@@ -174,7 +188,7 @@ class ClassController extends Controller
         AssignmentGrading::save($submission, $data);
         AssignmentGrading::notify($submission);
 
-        return back()->with('success', 'Score and feedback returned.');
+        return back()->with('success', 'Nilai dan catatan guru berhasil disimpan.');
     }
 
     public function bulkGrade(Request $r, Assignment $assignment)
@@ -184,10 +198,10 @@ class ClassController extends Controller
         foreach (AssignmentGrading::rules($assignment, true) as $field => $rule) {
             $rules['grades.*.'.$field] = ($r->filled('expected_count') ? 'present|' : '').$rule;
         }
-        $data = $r->validate($rules, ['grades.*.score.present' => 'A grade field did not reach the server. No grades were changed. Ask an administrator to check the form-input limit.',
-            'grades.*.feedback.present' => 'A grade field did not reach the server. No grades were changed. Ask an administrator to check the form-input limit.']);
+        $data = $r->validate($rules, ['grades.*.score.present' => 'Sebagian data nilai tidak terkirim lengkap ke server. Tidak ada nilai yang diubah.',
+            'grades.*.feedback.present' => 'Sebagian data nilai tidak terkirim lengkap ke server. Tidak ada nilai yang diubah.']);
         if ($r->filled('expected_count') && count($data['grades']) !== (int) $data['expected_count']) {
-            throw ValidationException::withMessages(['grades' => 'Not all grade rows reached the server. No grades were changed. Ask your administrator to check the server form-input limit.']);
+            throw ValidationException::withMessages(['grades' => 'Sebagian baris nilai tidak terkirim lengkap ke server. Muat ulang halaman lalu simpan kembali.']);
         }
         $count = AssignmentGrading::saveMany($r->user(), $assignment, $data['grades']);
 

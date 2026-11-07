@@ -10,8 +10,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('subjects', function (Blueprint $table) {
-            // Shared (legacy) subjects still have globally unique codes; scoped
-            // curriculum subjects use the program/year/semester/code constraint.
             $table->string('shared_code')->nullable()->virtualAs('case when program_id is null then code else null end');
             $table->unique('shared_code');
         });

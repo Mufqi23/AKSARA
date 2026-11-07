@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "campus/uep-lms",
+    "name": "school/aksara",
     "type": "project",
-    "description": "A block-based university learning management system built with Laravel, Blade and Bootstrap.",
+    "description": "AKSARA (Aplikasi Kegiatan Sekolah dan Akademik Terpadu) — Portal pembelajaran dan akademik sekolah berbasis Laravel, Blade, dan Bootstrap.",
     "keywords": [
         "laravel",
         "framework"

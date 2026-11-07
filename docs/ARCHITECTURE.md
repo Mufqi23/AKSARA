@@ -1,55 +1,133 @@
-# Application map
+# Peta Aplikasi AKSARA
 
-The app uses Laravel 12, server-rendered Blade, local Bootstrap 5.3.8 assets, MySQL, Eloquent, Laravel sessions, notifications, mail, validation and private filesystem storage.
+**AKSARA (Aplikasi Kegiatan Sekolah dan Akademik Terpadu)** dibangun dengan Laravel 12, Blade yang dirender di sisi server, aset Bootstrap 5.3.8 lokal, CSS & JS modular, MySQL, Eloquent, sesi terenkripsi Laravel, notifikasi, mail, validasi, dan penyimpanan berkas privat. Zona waktu bawaan adalah `Asia/Jakarta` dan locale bawaan `id`.
 
-## Academic model
+## Model Akademik Sekolah
 
-`academic_years + programs + year_levels + semester → blocks → students`
+```
+academic_years + programs + year_levels + semester → blocks (rombel) → students (siswa)
+teacher (guru) + block (rombel) + subject (mata pelajaran) → teacher_assignments (kelas) → enrollments
+```
 
-`teacher + block + subject → teacher_assignments → enrollments`
+- `TeacherAssignment` adalah agregat **kelas mata pelajaran** yang dipakai di seluruh antarmuka portal sekolah.
+- Menempatkan siswa ke sebuah rombongan belajar (*rombel* / `blocks`) otomatis mendaftarkannya ke seluruh kelas mata pelajaran pada rombel tersebut. Membuat kelas baru otomatis mendaftarkan siswa yang sudah tergabung di rombel itu. Administrator sekolah tetap dapat mengelola pendaftaran (*enrollment*) secara eksplisit.
+- Jurusan (`programs`) dan tingkat kelas siswa (`year_levels`) dinormalisasi melalui relasi rombel.
+- Pertemuan pelajaran, bahan ajar, tugas, kuis evaluasi, jadwal pelajaran, nilai, dan sesi presensi harian merujuk ke sebuah kelas. Rekaman presensi merujuk ke pasangan sesi/siswa dengan *unique constraint* di basis data. Versi pengumpulan tugas dan nomor percobaan kuis memakai *compound unique constraint*.
+- *Foreign key* MySQL melindungi riwayat akademik siswa; akun pengguna mendukung *soft delete* dan penangguhan (suspensi).
 
-`TeacherAssignment` is the classroom aggregate used throughout the UI. Student placement automatically enrolls the student in that block's classes. Creating a class automatically enrolls existing block students. Admins can manage explicit enrollments. Student program/year level are normalized through the block relationship.
+## Struktur Kode Modular
 
-Lessons, materials, assignments, quizzes, schedules, grades and attendance sessions reference a classroom. Attendance records reference a session/student pair with a database unique constraint. Submission versions and quiz attempt numbers have compound unique constraints. MySQL foreign keys protect academic history; users support soft deletion and suspension.
+### Routing
 
-## Authorization
+- `routes/web.php` hanya berisi rute ke *controller* — tidak ada *route closure*. Berkas `routes/teacher-workflows.php` dan `routes/academic-setup.php` dimuat di dalam grup rute terproteksi.
+- `routes/console.php` hanya berisi entri `Schedule::command`.
 
-All portal routes require authentication, active account status and email verification. Administrative routes additionally require the admin role. `Access::classes` scopes reads to the teacher profile or explicit student enrollment. Every class mutation checks the classroom and role again. Submission downloads check student ownership; quiz attempts check ownership; report filters operate inside the authorized query. A `manage-class` gate is also registered for UI/extensions.
+### Data Master Tata Usaha / Admin Sekolah
 
-`CatalogRequest` validates allowlisted administrative resources. `Catalog` defines those models, field types and validation rules. `AdminController` adds academic consistency and schedule conflict checks. Content forms use a separate allowlist in `ClassContent`; arbitrary table names, model classes, and submitted role fields are never accepted as persistence instructions.
+Setiap sumber daya administrasi sekolah memiliki *controller* khusus di `app/Http/Controllers/Admin/`:
 
-## Assessment rules
+| Controller | URL | Entitas Sekolah |
+| --- | --- | --- |
+| `UserController` | `/admin/manage/users` | Akun Pengguna |
+| `AcademicYearController` | `/admin/manage/academic-years` | Tahun Ajaran |
+| `ProgramController` | `/admin/manage/programs` | Jurusan |
+| `YearLevelController` | `/admin/manage/year-levels` | Tingkat Kelas |
+| `BlockController` | `/admin/manage/blocks` | Kelas & Rombel |
+| `SubjectController` | `/admin/manage/subjects` | Mata Pelajaran |
+| `StudentController` | `/admin/manage/students` | Data Siswa |
+| `TeacherController` | `/admin/manage/teachers` | Data Guru |
+| `TeacherAssignmentController` | `/admin/manage/teacher-assignments` | Kelas & Penugasan Guru |
+| `EnrollmentController` | `/admin/manage/enrollments` | Pendaftaran Kelas Siswa |
+| `ScheduleController` | `/admin/manage/schedules` | Jadwal Pelajaran |
 
-- Lessons/materials/assignments are draft or published. Students see published content only.
-- Assignments retain all versions. Grading validates point limits, records feedback and updates the gradebook from the latest graded version.
-- Quizzes support multiple-choice questions, a configured attempt count, availability dates and a server-side expiry timestamp. Question edits are limited to drafts without attempts. Quizzes with attempts are locked.
-- Attempt creation is serialized on the quiz row; finishing is serialized on the attempt row. Duplicate submissions do not change a completed score. The best completed attempt appears in the gradebook.
-- Answers are submitted as one form. A timer submits at expiry, but server time is authoritative. This release does not autosave in-progress answers.
-- Scores are visible after completion. Correct answers are revealed only after the availability window closes, preventing later-attempt answer disclosure.
-- The class gradebook's final percentage sums scores against all listed assessment points. Missing work is zero. The dashboard's recorded average uses only recorded grades and is labelled accordingly. No official university transmutation scale is implied.
+Masing-masing menyediakan `index`, `create`, `{id}/edit`, `store`, `update`, dan `destroy`. Semuanya mewarisi kelas abstrak `Admin\ResourceController`, yang mendelegasikan validasi dan persistensi bersama ke `AdminController`, `App\Services\Catalog`, dan `App\Http\Requests\CatalogRequest`.
 
-## Attendance rules
+### Konten Kelas Pembelajaran
 
-The default late threshold is 15 minutes, configurable for new sessions. Each session stores its threshold so future settings changes do not reinterpret historical attendance. Provided arrival minutes determine Present versus Late. Teachers can record/edit through seven calendar days after the session; older records require an administrator. Every admin write requires a reason. Every record creation/edit stores before/after JSON, actor and reason in an audit log.
+`LessonController`, `MaterialController`, `AssignmentController`, dan `QuizController` memiliki rute eksplisit:
 
-Students may submit one excuse request for an absent record. A permitted teacher/admin approves or rejects it under the same editing window rules. Excused records are excluded from the attendance rate denominator. Empty/fully excused sets display N/A.
+- `GET /classes/{classroom}/content/lessons/create`
+- `GET /classes/{classroom}/content/lessons/{id}/edit`
+- `POST /classes/{classroom}/content/lessons`
+- `PUT|DELETE /classes/{classroom}/content/lessons/{id}`
 
-## Reports and exports
+Pola yang sama berlaku untuk `materials`, `assignments`, dan `quizzes`. Logika bersama berada di `ClassController` dan `App\Services\ClassContent`.
 
-Attendance supports academic year, semester, program, year level, block, subject, student, status and date filters, plus teacher filtering for admins. Student queries stay limited to their own records even when a different student ID is supplied. Class selection provides student subject filtering. The report includes history, monthly calendar, counts, and per-class rates. Grade, enrollment and student roster reports share the same class scope.
+### Modul AI Peringatan Dini (`app/Services/Ai/`)
 
-PDF uses Dompdf with remote resource access disabled. Excel output is an actual `.xlsx` OpenXML ZIP workbook; cells use explicit strings so user content cannot become spreadsheet formulas. `ReportExport` generates both formats from the same scoped rows shown on screen.
+- `EarlyWarningController` menangani `/early-warning` dan `/early-warning/students/{student}`.
+- `EarlyWarningService` mengoordinasikan kueri teragregasi bebas *N+1*, `EarlyWarningCalculator` menghitung skor risiko (0–100), dan `EarlyWarningNarrative` menyusun narasi diagnostik serta rekomendasi pembimbingan bagi guru dan siswa.
 
-## Main routes
+### Perintah Artisan
 
-- `/login`, `/logout`, `/activate/{user}`, `/verify-email`, `/forgot-password`, `/reset-password/{token}`
-- `/dashboard`, `/classes`, `/classes/{classroom}`, `/schedule`, `/search`
-- `/classes/{classroom}/content/{kind}/create`, edit/store/update/delete equivalents
-- `/assignments/{assignment}`, `/assignments/{assignment}/submit`, `/submissions/{submission}/grade`
-- `/quizzes/{quiz}`, `/quizzes/{quiz}/questions`, `/quizzes/{quiz}/start`, `/attempts/{attempt}`
-- `/attendance/sessions/{session}`, `/attendance/{record}/excuse`, `/excuses/{excuse}`
-- `/classes/{classroom}/gradebook`, `/reports/{attendance|grades|students|enrollments}`
-- `/announcements`, `/notifications`, `/profile`
-- `/admin/manage/{resource}`, `/admin/settings`, `/admin/users/{user}/invite`
+Semua perintah berupa kelas di `app/Console/Commands/`:
 
-Role dashboards also have `/admin/dashboard`, `/teacher/dashboard`, `/student/dashboard` aliases. The shared classroom routes avoid triplicating logic while enforcing authorization at each entry point.
+| Kelas | Perintah | Fungsi |
+| --- | --- | --- |
+| `CreateAdminCommand` | `lms:create-admin` | Membuat akun administrator sekolah secara interaktif tanpa menyimpan kata sandi di riwayat shell |
+| `SendDeadlineRemindersCommand` | `lms:deadlines` | Mengirim pengingat tenggat tugas siswa (dijadwalkan per jam) |
+| `ExpireQuizzesCommand` | `lms:expire-quizzes` | Menyelesaikan dan menilai percobaan kuis yang kedaluwarsa (dijadwalkan per menit) |
+| `ImportCurriculum` | `lms:import-curriculum` | Memvalidasi dan mengimpor struktur kurikulum mata pelajaran; lihat [CURRICULUM.md](CURRICULUM.md) |
+
+### Layanan (`app/Services`)
+
+`AcademicSetup`, `Access`, `Ai\EarlyWarningService`, `Ai\EarlyWarningCalculator`, `Ai\EarlyWarningNarrative`, `AssignmentGrading`, `AttendanceService`, `Catalog`, `ClassContent`, `CurriculumImport`, `DashboardDataService`, `Files`, `ReportExport`, `ScheduleConflicts`, dan `StudentCsvImport`.
+
+## Otorisasi
+
+- Semua rute portal mewajibkan autentikasi, status akun aktif, dan email terverifikasi. Rute administratif juga mewajibkan peran administrator sekolah (`admin`).
+- `Access::classes` membatasi akses baca ke profil guru pengajar atau pendaftaran siswa yang sah. Setiap perubahan pada kelas memeriksa ulang kelas dan peran pengguna.
+- Pada modul AI Peringatan Dini, guru hanya melihat siswa yang terdaftar di kelas ajarnya, siswa hanya dapat melihat profil evaluasinya sendiri, dan administrator sekolah memantau seluruh sekolah.
+- Unduhan pengumpulan tugas memeriksa kepemilikan siswa; percobaan kuis memeriksa kepemilikan; filter laporan dijalankan di dalam kueri yang sudah terotorisasi. *Gate* `manage-class` terdaftar untuk UI dan ekstensi.
+
+## Keamanan
+
+| Aspek | Perilaku |
+| --- | --- |
+| Autentikasi dua faktor (2FA) | Opsional per pengguna (diaktifkan di profil). Kode OTP 6 digit dikirim lewat email melalui `App\Notifications\TwoFactorCode`, berlaku 10 menit, dan disimpan dalam bentuk hash di basis data. |
+| Pembatasan laju | Login 15/menit; verifikasi OTP 6/menit; kirim ulang OTP melalui `POST /two-factor-challenge/resend` 3/menit. |
+| Sesi | `SESSION_ENCRYPT` bawaan `true`, `SESSION_SECURE_COOKIE` `true`, cookie `http_only`, `same_site` `lax`. |
+| Bahasa | Terjemahan Bahasa Indonesia di `lang/id` (`auth`, `passwords`, `pagination`, `validation`). |
+
+## Aturan Penilaian Sekolah
+
+- Topik pertemuan, bahan ajar, dan tugas berstatus draf atau terbit. Siswa hanya melihat konten yang sudah diterbitkan oleh guru.
+- Semua versi pengumpulan tugas siswa disimpan. Penilaian guru memvalidasi batas poin, mencatat umpan balik perbaikan, dan memperbarui buku nilai dari versi terakhir yang dinilai.
+- Kuis mendukung soal pilihan ganda, jumlah percobaan yang dikonfigurasi, rentang ketersediaan, dan stempel waktu kedaluwarsa di sisi server. Soal hanya dapat diubah selama kuis masih draf dan belum ada percobaan.
+- Persentase akhir di buku nilai kelas menjumlahkan skor terhadap seluruh poin penilaian yang tercantum; tugas yang belum dikumpulkan bernilai nol dalam perhitungan total kelas.
+
+## Aturan Presensi Harian
+
+- Ambang keterlambatan bawaan 15 menit dan dapat diatur untuk sesi baru. Setiap sesi menyimpan ambangnya sendiri sehingga perubahan pengaturan tidak mengubah catatan presensi lama. Menit kedatangan menentukan status Hadir atau Terlambat.
+- Guru dapat mencatat/mengubah presensi hingga tujuh hari kalender setelah sesi pelajaran berlangsung; rekaman yang lebih lama hanya dapat dikoreksi oleh administrator sekolah dengan alasan wajib.
+- Setiap pembuatan atau koreksi rekaman menyimpan JSON sebelum/sesudah, pelaku, dan alasan di log audit.
+- Siswa dapat mengajukan permohonan izin/sakit untuk rekaman ketidakhadiran. Guru atau admin yang berwenang menyetujui atau menolaknya. Rekaman berizin dikecualikan dari penyebut tingkat kehadiran.
+
+## Laporan dan Ekspor Sekolah
+
+| Rute | Method `ReportController` |
+| --- | --- |
+| `/reports/attendance` | `attendance` |
+| `/reports/grades` | `grades` |
+| `/reports/students` | `students` |
+| `/reports/enrollments` | `enrollments` |
+| `/classes/{classroom}/gradebook` | `gradebook` |
+
+- Laporan presensi mendukung filter tahun ajaran, semester, jurusan, tingkat kelas, rombel, mata pelajaran, siswa, status, dan rentang tanggal, serta filter guru untuk admin.
+- PDF dibuat menggunakan Dompdf dengan akses sumber daya jarak jauh dinonaktifkan. Excel berupa workbook `.xlsx` OpenXML yang menulis sel sebagai string eksplisit agar aman dari injeksi formula.
+
+## Rute Utama
+
+| Area | Rute |
+| --- | --- |
+| Publik & Autentikasi | `/`, `/login`, `/two-factor-challenge`, `/two-factor-challenge/resend`, `/logout`, `/activate/{user}`, `/verify-email`, `/forgot-password`, `/reset-password/{token}` |
+| Portal Sekolah | `/dashboard`, `/classes`, `/classes/{classroom}`, `/schedule`, `/search`, `/profile`, `/profile/two-factor`, `/announcements`, `/notifications` |
+| Pusat Dataset Sekolah | `/dataset`, `/dataset/preview`, `/dataset/commit`, `/dataset/templates/{module}`, `/dataset/export/{module}` |
+| AI Peringatan Dini | `/early-warning` |
+| Konten Kelas | `/classes/{classroom}/content/{lessons,materials,assignments,quizzes}` |
+| Tugas & Nilai | `/assignments/{assignment}`, `/assignments/{assignment}/submit`, `/assignments/{assignment}/grades`, `/submissions/{submission}/grade` |
+| Unduhan Berkas | `/files/materials/{id}`, `/files/assignments/{id}`, `/files/submissions/{id}` |
+| Evaluasi Kuis | `/quizzes/{quiz}`, `/quizzes/{quiz}/questions`, `/quizzes/{quiz}/start`, `/attempts/{attempt}` |
+| Presensi Harian | `/classes/{classroom}/attendance`, `/attendance/sessions/{session}`, `/attendance/sessions/{session}/bulk-records`, `/attendance/{record}/excuse`, `/excuses/{excuse}` |
+| Laporan Sekolah | `/reports/attendance`, `/reports/grades`, `/reports/students`, `/reports/enrollments`, `/classes/{classroom}/gradebook` |
+| Administrasi | `/admin/manage/{sumber-daya}`, `/admin/settings`, `/admin/users/{user}/invite`, `/admin/setup` |

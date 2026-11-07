@@ -1,0 +1,255 @@
+/* ============================================================
+   AKSARA — Auth Shell, Responsive Breakpoints & Clean Modals
+   Modal & Auth Card Styled in Pola 2 (Clean White Surface)
+   ============================================================ */
+
+/* ── Auth Shell ──────────────────────────────────────────── */
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg-page);
+  position: relative;
+}
+.auth-shell::before {
+  content: '';
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(var(--primary-rgb), 0.08) 0%, transparent 70%);
+  top: -80px;
+  right: -80px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.auth-header-bar {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+}
+.auth-main {
+  width: 100%;
+  max-width: 420px;
+  z-index: 10;
+}
+.auth-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 32px 28px;
+  box-shadow: var(--shadow-lg);
+}
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.auth-brand small {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Brand (reused in auth) */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--navy), var(--primary));
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.brand-img {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  border: 1px solid var(--border);
+  object-fit: contain;
+  padding: 2px;
+  flex-shrink: 0;
+}
+.brand-text { line-height: 1.15; }
+.brand-title {
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+}
+.brand-title span { color: var(--primary); }
+
+/* ── Footer ──────────────────────────────────────────────── */
+.page-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  background: var(--bg-card);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+/* ── Responsive Sidebar Drawer & Breakpoints ─────────────── */
+@media (max-width: 991.98px) {
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transform: translateX(-104%);
+    z-index: 1045;
+  }
+  .app-sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-link.active {
+    margin-right: 14px;
+    border-radius: 999px;
+  }
+  .sidebar-link.active .sidebar-curve-top,
+  .sidebar-link.active .sidebar-curve-bottom {
+    display: none;
+  }
+  .workspace-topbar {
+    padding: 12px 18px;
+  }
+  .page-container {
+    padding: 18px 16px 40px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .stat-card { padding: 14px 16px; }
+  .stat-value { font-size: 1.45rem; }
+  .stat-icon { width: 34px; height: 34px; }
+}
+
+@media (max-width: 479.98px) {
+  .stats-row { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-in,
+  .stat-card,
+  .sidebar-logo-ring {
+    animation: none !important;
+  }
+}
+
+/* Utility: color dots for status */
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot-green { background: var(--green); }
+.dot-orange { background: var(--orange); }
+.dot-red { background: var(--danger); }
+.dot-blue { background: var(--blue); }
+
+/* ── Pola 2: Clean Pop-Up Dialog Modal (Edit & Delete) ────── */
+.aksara-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2050;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.aksara-popup-backdrop.is-open {
+  display: flex;
+}
+
+.aksara-popup-dialog {
+  width: 100%;
+  max-width: 660px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 20px 48px -12px rgba(15, 23, 42, 0.25);
+  animation: aksaraFadeUp 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.aksara-popup-sm {
+  max-width: 430px;
+}
+
+.aksara-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Clean square bordered close button (matches Reference Image 2) */
+.aksara-popup-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  box-shadow: none;
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.aksara-popup-close:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.aksara-popup-body {
+  padding: 22px 24px;
+}
+
+.aksara-popup-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card-alt);
+}

@@ -34,7 +34,6 @@ class DashboardController extends Controller
         $classQuery = Access::classes($user);
         $classCount = (clone $classQuery)->count();
         $classes = (clone $classQuery)->orderBy('id')->limit(6)->get();
-        // Keep scopes in SQL so a dashboard never needs to load every class or roster.
         $ids = (clone $classQuery)->withoutEagerLoads()->select('teacher_assignments.id');
         $studentId = $user->role === 'student' ? ($user->student?->id ?? 0) : 0;
         $assignmentQuery = Assignment::whereIn('teacher_assignment_id', $ids)->where('status', 'published');
@@ -43,7 +42,6 @@ class DashboardController extends Controller
         $announcements = Access::announcements($user)->latest()->limit(4)->get();
         $attendance = AttendanceRecord::whereHas('session', fn ($q) => $q->whereIn('teacher_assignment_id', $ids))->when($user->role === 'student', fn ($q) => $q->where('student_id', $studentId))
             ->selectRaw("SUM(CASE WHEN status IN ('present', 'late') THEN 1 ELSE 0 END) AS attended, SUM(CASE WHEN status IN ('present', 'late', 'absent') THEN 1 ELSE 0 END) AS applicable")->first();
-        // Same calculation as AttendanceService::rate: excused records do not lower attendance.
         $rate = $attendance->applicable > 0 ? round($attendance->attended / $attendance->applicable * 100, 1) : null;
         $stats = $user->role === 'admin' ? ['Students' => Student::count(), 'Teachers' => Teacher::count(), 'Programs' => Program::count(), 'Blocks' => Block::count(), 'Subjects' => Subject::count(), 'Active classes' => $classCount, 'Assignments' => Assignment::count(), 'Awaiting grading' => AssignmentSubmission::whereNull('graded_at')->whereIn('id', AssignmentSubmission::selectRaw('MAX(id)')->groupBy('assignment_id', 'student_id'))->count()] : ['My classes' => $classCount, 'Upcoming assignments' => $user->role === 'student' ? (clone $assignmentQuery)->where('due_at', '>=', now())->count() : $upcoming->count(), ...(config('lms.show_advanced_features') ? ['Available / upcoming quizzes' => $quizzes->count()] : []), 'Attendance' => $rate === null ? 'N/A' : $rate.'%'];
         $schedules = $user->role === 'student' ? collect() : ClassSchedule::whereIn('teacher_assignment_id', $ids)->with('classroom.subject', 'classroom.block.program', 'classroom.teacher.user')->orderBy('day')->orderBy('start_time')->limit(12)->get();
@@ -103,7 +101,9 @@ class DashboardController extends Controller
 
     public function schedule(Request $r)
     {
-        return view('schedule', ['schedules' => ClassSchedule::whereIn('teacher_assignment_id', Access::classes($r->user())->pluck('id'))->with('classroom.subject', 'classroom.block.program', 'classroom.teacher.user')->orderBy('day')->orderBy('start_time')->get()]);
+        $classIds = Access::classes($r->user())->withoutEagerLoads()->select('teacher_assignments.id');
+
+        return view('schedule.index', ['schedules' => ClassSchedule::whereIn('teacher_assignment_id', $classIds)->with('classroom.subject', 'classroom.block.program', 'classroom.teacher.user')->orderBy('day')->orderBy('start_time')->get()]);
     }
 
     public function search(Request $r)
@@ -111,15 +111,18 @@ class DashboardController extends Controller
         $r->validate(['q' => 'nullable|string|max:100']);
         $results = collect();
         if ($r->filled('q')) {
-            $classIds = Access::classes($r->user())->pluck('id');
+            $classIds = Access::classes($r->user())->withoutEagerLoads()->select('teacher_assignments.id');
             foreach (ClassContent::all() as $kind => [$model]) {
-                $rows = $model::whereIn('teacher_assignment_id', $classIds)->when($r->user()->role === 'student', fn ($q) => $q->where('status', 'published'))->where(fn ($q) => $q->where('title', 'like', '%'.$r->q.'%')->orWhere('description', 'like', '%'.$r->q.'%'))->with('classroom.subject', 'classroom.block')->limit(30)->get();
+                if ($kind === 'quizzes' && ! config('lms.show_advanced_features')) {
+                    continue;
+                }
+                $rows = $model::whereIn('teacher_assignment_id', $classIds)->when($r->user()->role === 'student', fn ($q) => $q->where('status', 'published'))->where(fn ($q) => $q->where('title', 'like', '%'.$r->q.'%')->orWhere('description', 'like', '%'.$r->q.'%'))->with('classroom.subject', 'classroom.block.program')->limit(30)->get();
                 foreach ($rows as $row) {
                     $results->push(['title' => $row->title, 'kind' => $kind, 'class' => $row->classroom->label, 'url' => in_array($kind, ['assignments', 'quizzes']) ? '/'.$kind.'/'.$row->id : '/classes/'.$row->teacher_assignment_id.'#'.$kind]);
                 }
             }
         }
 
-        return view('search', compact('results'));
+        return view('portal.search', compact('results'));
     }
 }

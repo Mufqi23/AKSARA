@@ -22,7 +22,7 @@ class CurriculumImportTest extends TestCase
 
     private function rows(): array
     {
-        return app(CurriculumImport::class)->read(database_path('data/UEP_demo_courses_import.csv'));
+        return app(CurriculumImport::class)->read(database_path('data/demo_courses_import.csv'));
     }
 
     private function import(): array
@@ -72,7 +72,6 @@ class CurriculumImportTest extends TestCase
         $this->assertSame($before, $this->protectedData());
         $this->assertSame($legacy, Subject::whereNull('program_id')->get()->map->getAttributes()->all());
         $this->assertSame($firstYear, YearLevel::where('level', 1)->first()->getAttributes());
-        // Conflicting codes have independent titles, credits and prerequisite IDs.
         $this->assertSame(4, Subject::where('code', 'OJT 401')->count());
         $this->assertSame(3, Subject::where('code', 'RES 301')->count());
     }

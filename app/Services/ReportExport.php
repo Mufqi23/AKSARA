@@ -2,19 +2,22 @@
 
 namespace App\Services;
 
+use App\Services\Dataset\SpreadsheetCodec;
 use Dompdf\Dompdf;
 
 class ReportExport
 {
     public static function download(string $format, string $title, array $headers, array $rows)
     {
+        $safeTitle = preg_replace('/[^A-Za-z0-9_\-. ]+/', '_', $title) ?: 'Laporan';
+
         if ($format === 'pdf') {
             $pdf = new Dompdf(['isRemoteEnabled' => false]);
             $pdf->loadHtml(view('reports.print', compact('title', 'headers', 'rows'))->render());
             $pdf->setPaper('A4', 'landscape');
             $pdf->render();
 
-            return response($pdf->output(), 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'attachment; filename="'.$title.'.pdf"']);
+            return response($pdf->output(), 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'attachment; filename="'.$safeTitle.'.pdf"']);
         }
         abort_unless($format === 'xlsx', 404);
         $path = tempnam(sys_get_temp_dir(), 'lms');
@@ -28,13 +31,14 @@ class ReportExport
         foreach (array_merge([$headers], $rows) as $i => $row) {
             $xml .= '<row r="'.($i + 1).'">';
             foreach (array_values($row) as $value) {
-                $xml .= '<c t="inlineStr"><is><t xml:space="preserve">'.htmlspecialchars((string) $value, ENT_XML1 | ENT_QUOTES, 'UTF-8').'</t></is></c>';
+                $cellText = $i === 0 ? (string) $value : SpreadsheetCodec::safeCellValue($value);
+                $xml .= '<c t="inlineStr"><is><t xml:space="preserve">'.htmlspecialchars($cellText, ENT_XML1 | ENT_QUOTES, 'UTF-8').'</t></is></c>';
             }
             $xml .= '</row>';
         }
         $zip->addFromString('xl/worksheets/sheet1.xml', $xml.'</sheetData></worksheet>');
         $zip->close();
 
-        return response()->download($path, $title.'.xlsx', ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])->deleteFileAfterSend(true);
+        return response()->download($path, $safeTitle.'.xlsx', ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])->deleteFileAfterSend(true);
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\ActiveAccount;
 use App\Http\Middleware\Role;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,8 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias(['active' => ActiveAccount::class, 'role' => Role::class]);
+        $middleware->web(append: [SecurityHeaders::class]);
 
-        if (env('LMS_VERCEL_RUNTIME', false)) {
+        if (filter_var($_SERVER['LMS_VERCEL_RUNTIME'] ?? $_ENV['LMS_VERCEL_RUNTIME'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
             $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_HOST | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO);
         }
     })

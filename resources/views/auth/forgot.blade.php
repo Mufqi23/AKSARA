@@ -1,3 +1,16 @@
 @extends('layouts.app')
-@section('title','Forgot password')
-@section('content')<div class="auth-card"><h1>Reset your password</h1><p>Enter your account email to receive a password reset link.</p><form method="post" action="/forgot-password">@csrf<label class="form-label" for="email">Email</label><input id="email" class="form-control mb-3" name="email" type="email" required><button class="btn btn-primary">Send reset link</button></form><a class="d-block mt-3" href="/login">Back to sign in</a></div>@endsection
+@section('title', 'Pembaruan Kata Sandi')
+
+@section('content')
+<div class="auth-card">
+    <div class="eyebrow mb-2">BANTUAN AKUN</div>
+    <h1 class="h3 mb-2 fw-bold text-main">Lupa Kata Sandi?</h1>
+    <p class="text-secondary mb-3 small">
+        Penggantian kata sandi akun guru dan siswa dibantu langsung oleh Admin Sekolah. Silakan hubungi bagian Tata Usaha atau Admin Sekolah untuk mendapatkan bantuan kata sandi baru.
+    </p>
+
+    <div class="border-top pt-3 mt-4 text-center">
+        <a href="/login" class="small fw-semibold text-primary">← Kembali ke Halaman Masuk</a>
+    </div>
+</div>
+@endsection

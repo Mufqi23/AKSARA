@@ -30,8 +30,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Restoring globally unique codes would lose valid program-specific courses.
-        // Require a deliberate, reviewed data migration rather than deleting curriculum.
         if (DB::table('subjects')->whereNotNull('program_id')->exists()
             || DB::table('subject_prerequisites')->exists()) {
             throw new LogicException('Curriculum rollback requires a reviewed data migration; no records were removed.');

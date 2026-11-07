@@ -1,3 +1,16 @@
 @extends('layouts.app')
-@section('title','New password')
-@section('content')<div class="auth-card"><h1>Choose a password</h1><p>Use at least 12 characters, uppercase and lowercase letters, and a number.</p><form method="post" action="/reset-password">@csrf<input type="hidden" name="token" value="{{ $token }}"><label class="form-label">Email<input class="form-control mb-3" type="email" name="email" value="{{ request('email') }}" required></label>@include('auth.password-fields')<button class="btn btn-primary">Reset password</button></form></div>@endsection
+@section('title', 'Pembaruan Kata Sandi')
+
+@section('content')
+<div class="auth-card">
+    <div class="eyebrow mb-2">BANTUAN AKUN</div>
+    <h1 class="h3 mb-2 fw-bold text-main">Penggantian Kata Sandi</h1>
+    <p class="text-secondary mb-3 small">
+        Penggantian kata sandi akun guru dan siswa dibantu langsung oleh Admin Sekolah. Silakan hubungi bagian Tata Usaha atau Admin Sekolah untuk memperbarui kata sandi akun Anda.
+    </p>
+
+    <div class="border-top pt-3 mt-4 text-center">
+        <a href="/login" class="small fw-semibold text-primary">← Kembali ke Halaman Masuk</a>
+    </div>
+</div>
+@endsection

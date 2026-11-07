@@ -1,0 +1,245 @@
+/* ============================================================
+   AKSARA — Login Actions, Secondary Outline Button & Responsive
+   ============================================================ */
+
+.uiv-meta-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.uiv-remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-body);
+  cursor: pointer;
+}
+.uiv-remember input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
+.login-btn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+/* Primary Tactile 3D CTA Button */
+.uiv-enter,
+.btn-submit {
+  width: 100%;
+  padding: 11px 20px;
+  border-radius: 10px;
+  border: 1px solid #2563eb;
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 3px 0 #1d4ed8, 0 6px 14px -3px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+.uiv-enter:hover,
+.btn-submit:hover {
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  border-color: #1d4ed8;
+  color: #ffffff;
+  box-shadow: 0 4px 0 #1e40af, 0 8px 18px -3px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+.uiv-enter:active,
+.btn-submit:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #1d4ed8;
+}
+
+/* Secondary White Bordered Button (Reference Image 2 style) */
+.btn-outline-card {
+  width: 100%;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  color: var(--text-dark);
+  font-family: var(--font);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.btn-outline-card:hover {
+  background: var(--bg-page);
+  border-color: var(--text-light);
+  color: var(--text-dark);
+}
+
+/* Form elements (shared by 2FA page) */
+.field-group {
+  margin-bottom: 18px;
+}
+.field-group label {
+  display: block;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+.field-group input[type="email"],
+.field-group input[type="password"],
+.field-group input[type="text"] {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  color: var(--text-dark);
+  background: var(--bg-card);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.field-group input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+.field-group input::placeholder {
+  color: var(--text-light);
+}
+
+.login-help {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 0.79rem;
+  color: var(--text-light);
+  line-height: 1.55;
+}
+.login-help a {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.login-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--text-light);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.login-back:hover { color: var(--blue); }
+
+.login-copyright {
+  margin-top: 22px;
+  font-size: 0.74rem;
+  color: var(--text-light);
+  text-align: center;
+}
+
+/* Clean Alert Styles */
+.login-alert {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.84rem;
+  margin-bottom: 16px;
+}
+.login-alert-error {
+  background: var(--coral-bg);
+  color: var(--coral);
+  border: 1px solid rgba(220, 38, 38, 0.22);
+}
+.login-alert-success {
+  background: var(--sage-bg);
+  color: var(--sage);
+  border: 1px solid rgba(21, 128, 61, 0.22);
+}
+.login-alert ul {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+}
+
+/* ─── RESPONSIVE ───────────────────────────────── */
+@media (max-width: 968px) {
+  .hero .wrap {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .hero h1 { font-size: 2.2rem; }
+  .hero-visual { display: none; }
+  .feat-grid { grid-template-columns: 1fr; }
+  .why-grid { grid-template-columns: 1fr; gap: 30px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+
+  .login-split {
+    grid-template-columns: 1fr;
+  }
+  .login-left {
+    padding: 36px 28px;
+    min-height: auto;
+  }
+  .login-left h1 { font-size: 1.6rem; }
+  .login-features { display: none; }
+  .login-right { padding: 32px 24px; }
+}
+
+@media (max-width: 720px) {
+  .ln-links {
+    display: none;
+    position: absolute;
+    top: 66px;
+    right: 24px;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 210px;
+    padding: 10px;
+    border-radius: 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    z-index: 200;
+  }
+  .ln-links .nav-link {
+    color: var(--text-dark);
+    justify-content: flex-start;
+  }
+  .ln-links .nav-link.btn-login {
+    margin-left: 0;
+    margin-top: 4px;
+    justify-content: center;
+    color: #ffffff;
+  }
+  .ln-links.is-open { display: flex; }
+  .ln-menu-btn { display: flex; }
+  .hero { padding: 72px 0 56px; }
+  .hero h1 { font-size: 1.8rem; }
+  .hero-sub { font-size: 0.92rem; }
+  .hero-actions { flex-direction: column; }
+  .btn-hero { width: 100%; justify-content: center; }
+  .section-title { font-size: 1.5rem; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+  .uiv-card, .auth-surface-card { padding: 26px 22px; }
+}

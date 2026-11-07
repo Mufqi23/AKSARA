@@ -1,29 +1,45 @@
-# Deployment guide
+# Panduan Deployment Server Sekolah
 
-## Requirements
+## Kebutuhan Sistem
 
-- PHP 8.2 or later compatible with the included Composer lock file. Tested with PHP 8.2.12.
-- PHP extensions: ctype, curl, dom, fileinfo, filter, hash, mbstring, openssl, pcre, PDO, pdo_mysql, session, tokenizer, xml, xmlreader, xmlwriter, zip. Enable pdo_sqlite for the default test suite.
-- MySQL 8.0+ (tested on MySQL 8.4.3); InnoDB and utf8mb4.
-- Composer 2. No Node server or frontend build is required; Bootstrap is bundled locally.
-- A web server with HTTPS, PHP-FPM or an equivalent PHP handler, and a scheduler.
+| Komponen | Kebutuhan |
+| --- | --- |
+| PHP | 8.2 atau lebih baru, kompatibel dengan `composer.lock` |
+| Ekstensi PHP | ctype, curl, dom, fileinfo, filter, hash, mbstring, openssl, pcre, PDO, pdo_mysql, session, tokenizer, xml, xmlreader, xmlwriter, zip; aktifkan juga `pdo_sqlite` untuk menjalankan pengujian otomatis |
+| Basis Data | MySQL 8.0+ dengan InnoDB dan `utf8mb4` |
+| Dependensi | Composer 2. Tidak memerlukan server Node atau proses build frontend karena aset Bootstrap, CSS, dan JS sudah dibundel secara lokal |
+| Server | Web server dengan HTTPS, PHP-FPM atau handler PHP setara, dan penjadwal (*scheduler*) |
 
-## Fresh production deployment
+## Deployment Produksi Baru
 
-1. Extract the project outside the web document root. Point the virtual host **only** to `UEP-LMS/public`.
-2. Run `composer install --no-dev --optimize-autoloader` on the server to validate platform requirements and prepare dependencies. The ZIP also includes vendor dependencies for convenience.
-3. Copy `.env.example` to `.env` and set `APP_ENV=production`, `APP_DEBUG=false`, `LOG_LEVEL=warning`, `APP_URL=https://your-lms.example`, `SESSION_SECURE_COOKIE=true`, and your actual database/SMTP values.
-4. Run `php artisan key:generate` once on a new installation. Preserve this key during upgrades. Set `APP_TIMEZONE` to the campus timezone; the default is `Asia/Manila`.
-5. Create a dedicated MySQL database and user, with permissions only on that database. Use that account in `.env`.
-6. Run `php artisan migrate --force` and `php artisan lms:create-admin`. The latter prompts for a trusted administrator name, email, and hidden password. It marks the trusted console-created administrator as verified. Do not seed demo accounts in production; the seeder refuses production mode.
-7. Allow the PHP service account to write `storage/` and `bootstrap/cache/`. Keep the remainder of the application read-only to the service account when practical.
-8. Run `php artisan storage:link`. This creates a link for the public disk only. Educational uploads and profile photos use `storage/app/private` and never require a public symlink.
-9. Run `php artisan optimize` after configuration is final. After future environment changes, run `php artisan optimize:clear`, then `php artisan optimize` again.
-10. Configure the scheduler, test account invitation/reset delivery, and verify HTTPS login before distributing access.
+1. Ekstrak proyek di luar *document root* publik web. Arahkan virtual host **hanya** ke folder `aksara/public`.
+2. Jalankan `composer install --no-dev --optimize-autoloader` di server untuk menyiapkan dependensi produksi.
+3. Salin `.env.example` ke `.env`, lalu atur `APP_ENV=production`, `APP_DEBUG=false`, `LOG_LEVEL=warning`, `APP_URL=https://portal.sekolah-anda.sch.id`, `SESSION_SECURE_COOKIE=true`, serta kredensial basis data dan SMTP sekolah.
+4. Jalankan `php artisan key:generate` satu kali pada instalasi baru, dan pertahankan kunci ini saat pembaruan versi. `APP_TIMEZONE` bawaan adalah `Asia/Jakarta` dan `APP_LOCALE` bawaan `id`.
+5. Buat basis data dan pengguna MySQL khusus dengan hak akses terbatas hanya ke basis data tersebut.
+6. Jalankan `php artisan migrate --force`, lalu `php artisan lms:create-admin` untuk membuat akun administrator sekolah pertama secara interaktif dan terverifikasi. Jangan menjalankan seeder akun demo di lingkungan produksi.
+7. Berikan izin tulis akun layanan PHP ke folder `storage/` dan `bootstrap/cache/`.
+8. Jalankan `php artisan storage:link` untuk disk publik. Berkas bahan ajar pelajaran, pengumpulan tugas siswa, dan foto profil disimpan secara aman di `storage/app/private`.
+9. Jalankan `php artisan optimize` setelah konfigurasi selesai. Setiap kali nilai `.env` diubah, jalankan `php artisan optimize:clear` lalu `php artisan optimize`.
+10. Konfigurasikan penjadwal (*cron*), uji pengiriman email undangan akun, reset kata sandi, dan kode OTP 2FA, kemudian verifikasi login melalui HTTPS sebelum membagikan akun kepada guru dan siswa.
 
-## SMTP
+## Keamanan Sesi dan Autentikasi
 
-The example uses `MAIL_MAILER=log` and `LOG_LEVEL=debug`, which writes messages to `storage/logs/laravel.log` for development only. Keep debug-level logging enabled when using the log mailer, because its generated messages are logged at debug level. To send real email:
+Nilai bawaan pada `config/session.php` dan `.env.example`:
+
+```dotenv
+SESSION_DRIVER=database
+SESSION_ENCRYPT=true
+SESSION_SECURE_COOKIE=true
+SESSION_HTTP_ONLY=true
+SESSION_SAME_SITE=lax
+```
+
+Dengan `SESSION_SECURE_COOKIE=true`, cookie sesi hanya dikirim melalui sambungan HTTPS. Guru, siswa, dan staf tata usaha yang mengaktifkan 2FA akan menerima kode OTP 6 digit lewat email (berlaku 10 menit).
+
+## Konfigurasi SMTP Sekolah
+
+Untuk lingkungan pengembangan lokal, `MAIL_MAILER=log` mencatat email ke `storage/logs/laravel.log`. Untuk pengiriman email sekolah sungguhan:
 
 ```dotenv
 MAIL_MAILER=smtp
@@ -32,38 +48,43 @@ MAIL_HOST=your-smtp-host
 MAIL_PORT=587
 MAIL_USERNAME=your-smtp-username
 MAIL_PASSWORD=your-smtp-password
-MAIL_FROM_ADDRESS=noreply@your-campus-domain
-MAIL_FROM_NAME="Campus LMS"
+MAIL_FROM_ADDRESS=noreply@sekolah-anda.sch.id
+MAIL_FROM_NAME="AKSARA (Aplikasi Kegiatan Sekolah dan Akademik Terpadu)"
 ```
 
-Use your provider's exact host, port and TLS requirements. `smtp` on 587 negotiates STARTTLS when supported; use `smtps` on 465 when your provider requires implicit TLS. Configure domain SPF/DKIM as instructed by your email provider. Set `APP_URL` correctly before sending links. Clear cached configuration after changes.
+### Undangan Akun, Reset Kata Sandi, dan Antrean
 
-Account invitations verify the email address and set the first password in one signed, single-use activation flow. Invitation/reset tokens expire after 60 minutes; admins can resend invitations. No public registration exists. Suspended users cannot regain access with a password reset. Individual account invitations and password reset emails use Laravel Mail synchronously. School Year Setup CSV invitations use the existing database queue to keep large imports out of a synchronous SMTP loop. Run a supervised `php artisan queue:work database --queue=default --tries=3 --timeout=30` worker using the same production configuration; restart it on releases. Individual Resend invitation remains available if a worker is not running. Assignment, grade, announcement, quiz, and deadline notifications are stored in Laravel's database notification table.
+- Undangan akun memverifikasi alamat email sekaligus menetapkan kata sandi awal melalui satu tautan aktivasi bertanda tangan (*signed URL*) sekali pakai yang berlaku 60 menit.
+- Undangan massal siswa dari berkas CSV pada wizard tahun ajaran diproses melalui antrean basis data agar impor ratusan siswa tetap responsif. Jalankan *queue worker* terawasi (*supervised*):
 
-Real SMTP delivery depends on your hosting network and provider; the automated tests verify notification generation, valid/invalid links, and password/account changes using a test mail transport. They do not claim delivery to an external mailbox.
+  ```sh
+  php artisan queue:work database --queue=default --tries=3 --timeout=30
+  ```
 
-## Scheduler
+## Penjadwal (*Scheduler*)
 
-Run once per minute on Linux:
+Di server Linux, jalankan setiap menit melalui cron:
 
 ```cron
-* * * * * cd /var/www/uep-lms && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /var/www/aksara && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-On Windows, use Task Scheduler to run `php artisan schedule:run` every minute with the project folder as its working directory. During local development, `php artisan schedule:work` is convenient.
+Di Windows Server, gunakan Task Scheduler untuk menjalankan `php artisan schedule:run` setiap menit pada direktori proyek.
 
-The scheduler sends one in-app reminder per unsubmitted assignment/user within 24 hours of its due time and finalizes expired quiz attempts. Expiry is also enforced when a quiz is opened or submitted; it does not depend on JavaScript or the scheduler. Unsubmitted answers receive no credit when an attempt expires. Set an accurate server clock.
+| Perintah | Jadwal | Fungsi |
+| --- | --- | --- |
+| `lms:deadlines` | Setiap jam | Mengirim pengingat in-app untuk tugas pelajaran yang belum dikumpulkan dalam 24 jam sebelum tenggat |
+| `lms:expire-quizzes` | Setiap menit | Menyelesaikan dan menilai percobaan kuis yang melewati batas waktu |
 
-## Upload limits
+## Batas Unggahan Berkas
 
-Set `upload_max_filesize=20M`, `post_max_size=24M`, and a suitable request timeout in the PHP configuration. Restart PHP afterward. For nginx, set `client_max_body_size 24m;`. Laravel accepts approved educational document types up to 20 MB and images for profile photos up to 2 MB. Files receive randomized private paths; downloads check role/class membership and submission ownership. Maintain backups of both MySQL and `storage/app/private` together.
+- Atur `upload_max_filesize=20M` dan `post_max_size=24M` di konfigurasi PHP (`php.ini`), serta `client_max_body_size 24m;` pada Nginx.
+- Aplikasi menerima berkas bahan ajar dan tugas hingga 20 MB serta foto profil hingga 2 MB pada lokasi privat teracak yang diperiksa izin kelasnya saat diunduh.
 
-## nginx example
-
-Adapt paths, PHP socket and TLS certificate directives to your server. The following belongs inside an HTTPS `server` block:
+## Contoh Konfigurasi Nginx
 
 ```nginx
-root /var/www/uep-lms/public;
+root /var/www/aksara/public;
 index index.php;
 client_max_body_size 24m;
 
@@ -81,14 +102,10 @@ location ~ \.php$ { return 404; }
 location ~ /\.(?!well-known).* { deny all; }
 ```
 
-For Apache/XAMPP, set `DocumentRoot` to the project's `public` folder, enable `mod_rewrite`, and allow `.htaccess` overrides for that folder. Do not serve the entire project directory. XAMPP is optional for local development and is not a production requirement.
+Untuk penerapan di Vercel, lihat [VERCEL.md](VERCEL.md).
 
-## Operations
+## Operasional Sekolah
 
-- Use suspension to revoke user access while preserving academic history. Related academic records use restrictive foreign keys to prevent destructive deletion.
-- Back up the database, private uploads and the protected `.env` separately from source releases. Test restores.
-- Keep PHP/Laravel dependencies updated within supported versions and run `composer audit` during releases.
-- Avoid overlapping academic identities: create a new block for a new academic period, and a new class for a new block rather than repurposing a class containing work.
-- A student's program/year level comes from the block, which prevents conflicting duplicate placement fields. Moving a student changes current enrollment; prior records remain stored for administrators and assigned teachers.
-- Reports currently load filtered records before exporting. For very large datasets, use a bounded date range and plan a queued/streaming reporting extension.
-- The attendance and grade policies are configurable project rules, not official UEP regulations. The project is not an official UEP product and includes no institutional logos or personal records.
+- Gunakan fitur penangguhan (*suspend*) akun untuk menonaktifkan akses pengguna tanpa menghapus riwayat nilai dan presensi siswa.
+- Buat rombel baru untuk tahun ajaran atau semester baru melalui wizard **Setup Tahun Ajaran** agar arsip nilai semester terdahulu tetap rapi dan utuh.
+- Jurusan dan tingkat kelas siswa mengacu langsung pada rombel aktifnya sehingga tidak terjadi ketidaksesuaian data penempatan siswa.

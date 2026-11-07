@@ -15,10 +15,10 @@ class CurriculumImport
 
     public function read(string $path): array
     {
-        if (! is_file($path) || ! is_readable($path) || filesize($path) > 5 * 1024 * 1024) {
+        $file = is_file($path) && filesize($path) <= 5 * 1024 * 1024 ? @fopen($path, 'rb') : false;
+        if ($file === false) {
             throw new RuntimeException('Curriculum CSV must be a readable file no larger than 5 MB.');
         }
-        $file = fopen($path, 'rb');
         try {
             $headers = fgetcsv($file, 0, ',', '"', '');
             if ($headers) {
@@ -147,7 +147,6 @@ class CurriculumImport
         $edges = $this->resolve($rows);
 
         return DB::transaction(function () use ($rows, $edges, $dryRun) {
-            // The existing program rows serialize concurrent curriculum imports.
             $programs = Program::orderBy('id')->lockForUpdate()->get();
             $levels = YearLevel::orderBy('level')->lockForUpdate()->get()->keyBy('level');
             $subjects = Subject::with('classAssignments.block')->orderBy('id')->lockForUpdate()->get();
@@ -187,8 +186,6 @@ class CurriculumImport
                     throw new RuntimeException("Duplicate existing curriculum course {$row['course_code']}; no records changed.");
                 }
                 $subject = $matches->first();
-                // Adopt a legacy course only when its data match exactly and every
-                // existing class already belongs to this exact curriculum scope.
                 if (! $subject) {
                     $legacy = $subjects->filter(fn ($s) => $s->program_id === null && $s->code === $row['course_code'] && $s->name === $row['course_title'] && (float) $s->units === (float) $row['units'] && $s->classAssignments->isNotEmpty() && $s->classAssignments->every(fn ($c) => $c->block->program_id == $programId && $c->block->year_level_id == $levelId && $c->block->semester == $row['semester_number']));
                     if ($legacy->count() > 1) {
@@ -243,7 +240,6 @@ class CurriculumImport
                     }
                 }
             }
-            // Never silently retain prerequisite relationships absent from the source.
             if (! $dryRun) {
                 foreach (array_chunk($newLinks, 500) as $chunk) {
                     DB::table('subject_prerequisites')->insert($chunk);

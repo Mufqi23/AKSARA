@@ -18,7 +18,6 @@ use Illuminate\Validation\Rule;
 
 class Catalog
 {
-    // One validated definition drives the administrative forms and persistence.
     public static function all(): array
     {
         return [
@@ -55,10 +54,10 @@ class Catalog
             return $row->program->code.' '.$row->name.' · '.$row->academicYear->name.' / S'.$row->semester;
         }
         if ($row instanceof Student) {
-            return $row->student_number.' · '.($row->user?->name ?? 'Archived user');
+            return $row->student_number.' · '.($row->user?->name ?? 'Akun diarsipkan');
         }
         if ($row instanceof Teacher) {
-            return $row->employee_number.' · '.($row->user?->name ?? 'Archived user');
+            return $row->employee_number.' · '.($row->user?->name ?? 'Akun diarsipkan');
         }
 
         return $row->name ?? $row->title ?? $row->code ?? ('#'.$row->id);
@@ -99,6 +98,64 @@ class Catalog
             'due_at' => 'Due Date',
             'total_points' => 'Points',
             default => Str::headline(preg_replace('/_id$/', '', $field)),
+        };
+    }
+
+    public static function fieldLabelId(string $field, ?string $resource = null): string
+    {
+        return match ($field) {
+            'name' => match ($resource) {
+                'year-levels' => 'Nama Tingkat Kelas',
+                'academic-years' => 'Nama Tahun Ajaran',
+                'programs' => 'Nama Jurusan / Program',
+                'blocks' => 'Nama Rombel / Kelas',
+                'subjects' => 'Nama Mata Pelajaran',
+                'users' => 'Nama Lengkap',
+                default => 'Nama',
+            },
+            'code' => match ($resource) {
+                'programs' => 'Kode Jurusan',
+                'subjects' => 'Kode Mapel',
+                default => 'Kode',
+            },
+            'email' => 'Alamat Email',
+            'role' => 'Peran Pengguna',
+            'status' => 'Status',
+            'starts_on' => 'Tanggal Mulai',
+            'ends_on' => 'Tanggal Selesai',
+            'level' => 'Angka Tingkat Kelas',
+            'academic_year_id' => 'Tahun Ajaran',
+            'program_id' => 'Jurusan / Program',
+            'year_level_id' => 'Tingkat Kelas',
+            'semester' => 'Semester',
+            'user_id' => 'Akun Pengguna',
+            'student_number' => 'NIS / Nomor Induk Siswa',
+            'block_id' => 'Rombel / Kelas',
+            'employee_number' => 'NIP / Nomor Induk Guru',
+            'description' => 'Deskripsi',
+            'units' => 'Jam Pelajaran (JP)',
+            'lecture_units' => 'JP Teori',
+            'laboratory_units' => 'JP Praktik',
+            'teacher_id' => 'Guru Pengajar',
+            'subject_id' => 'Mata Pelajaran',
+            'student_id' => 'Siswa',
+            'teacher_assignment_id' => 'Kelas Pelajaran',
+            'day' => 'Hari Belajar',
+            'start_time' => 'Jam Mulai',
+            'end_time' => 'Jam Selesai',
+            'room' => 'Ruang Kelas',
+            'title' => 'Judul Materi / Tugas',
+            'content' => 'Isi Modul / Materi',
+            'instructions' => 'Petunjuk Pengerjaan',
+            'attachment', 'file' => 'Berkas Lampiran',
+            'due_at' => 'Batas Waktu Pengumpulan',
+            'total_points', 'points' => 'Bobot Nilai Maksimal',
+            'allow_text' => 'Izinkan Jawaban Teks Langsung',
+            'time_limit' => 'Durasi Waktu (Menit)',
+            'max_attempts' => 'Batas Percobaan Maksimal',
+            'available_from' => 'Dibuka Mulai Tanggal',
+            'available_until' => 'Ditutup Pada Tanggal',
+            default => self::fieldLabel($field, $resource),
         };
     }
 
@@ -157,6 +214,9 @@ class Catalog
         }
         if ($resource === 'schedules') {
             $rules['end_time'][] = 'after:start_time';
+        }
+        if ($resource === 'users') {
+            $rules['password'] = ['nullable', 'string', 'min:8', 'max:255'];
         }
 
         return $rules;

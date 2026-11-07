@@ -136,13 +136,19 @@ class LmsTest extends TestCase
 
     public function test_password_reset_works(): void
     {
-        Notification::fake();
         $user = $this->user();
-        $this->post('/forgot-password', ['email' => $user->email])->assertSessionHas('success');
-        Notification::assertSentTo($user, ResetPassword::class);
-        $token = Password::broker()->createToken($user);
-        $this->post('/reset-password', ['email' => $user->email, 'token' => $token, 'password' => 'NewPassword1234', 'password_confirmation' => 'NewPassword1234'])->assertRedirect('/login');
+        $this->post('/forgot-password', ['email' => $user->email])->assertRedirect('/login')->assertSessionHasErrors('email');
+        $this->post('/reset-password', ['email' => $user->email, 'token' => 'invalid', 'password' => 'NewPassword1234', 'password_confirmation' => 'NewPassword1234'])->assertRedirect('/login')->assertSessionHasErrors('email');
+
+        $this->actingAs($this->admin())->put('/admin/manage/users/'.$user->id, [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'status' => $user->status,
+            'password' => 'NewPassword1234',
+        ])->assertRedirect('/admin/manage/users')->assertSessionHasNoErrors();
         $this->assertTrue(Hash::check('NewPassword1234', $user->fresh()->password));
+        $this->assertSame('NewPassword1234', $user->fresh()->adminVisiblePassword());
     }
 
     public function test_profile_cannot_change_role_or_placement(): void
@@ -153,7 +159,8 @@ class LmsTest extends TestCase
         $this->assertSame('student', $user->fresh()->role);
         $this->assertSame($block, $user->student->fresh()->block_id);
         $this->assertSame('student@example.com', $user->fresh()->email);
-        $this->put('/profile/password', ['current_password' => 'CampusDemo!2026', 'password' => 'ChangedPassword123', 'password_confirmation' => 'ChangedPassword123'])->assertSessionHasNoErrors();
+        $this->put('/profile/password', ['current_password' => 'CampusDemo!2026', 'password' => 'ChangedPassword123', 'password_confirmation' => 'ChangedPassword123'])->assertForbidden();
+        $this->actingAs($this->admin())->put('/profile/password', ['current_password' => 'CampusDemo!2026', 'password' => 'ChangedPassword123', 'password_confirmation' => 'ChangedPassword123'])->assertSessionHasNoErrors();
     }
 
     public function test_admin_catalog_pages_and_forms_render(): void

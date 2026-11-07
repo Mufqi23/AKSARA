@@ -35,12 +35,11 @@ class AssignmentGrading
         $graded = DB::transaction(function () use ($assignment, $rows) {
             $submitted = $assignment->submissions()->whereIn('id', array_keys($rows))->get();
             abort_unless($submitted->count() === count($rows), 403);
-            // Submission creation locks the student too, so a newer version cannot slip into this batch.
             Student::whereIn('id', $submitted->pluck('student_id'))->orderBy('id')->lockForUpdate()->get();
             $latestIds = $assignment->submissions()->selectRaw('MAX(id) AS id')->groupBy('student_id')->pluck('id')->all();
             foreach ($submitted as $submission) {
                 if (! in_array($submission->id, $latestIds)) {
-                    throw ValidationException::withMessages(['grades' => 'A student has submitted newer work. Reload this assignment before saving grades.']);
+                    throw ValidationException::withMessages(['grades' => 'Ada siswa yang baru saja mengirim jawaban terbaru. Muat ulang halaman tugas ini sebelum menyimpan nilai.']);
                 }
             }
             $graded = new Collection;
@@ -56,7 +55,6 @@ class AssignmentGrading
                 }
                 $submission->setRelation('assignment', $assignment);
                 self::storeSubmission($submission, $data);
-                // Every accepted row is the latest submission, so it is also the latest graded version.
                 $gradeRows[] = self::gradeKey($submission) + self::gradeValues($submission, $submission->score);
                 $graded->push($submission);
             }

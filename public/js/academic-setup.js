@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
             program.querySelector('[data-expected-levels]').value = levelRows.length;
             levelRows.forEach(level => { level.querySelector('[data-expected-blocks]').value = blocks(level).length; });
         });
-        form.querySelector('[data-structure-summary]').textContent = `${programRows.length} programs · ${levelTotal} year levels · ${blockCount()} / 30 blocks`;
+        form.querySelector('[data-structure-summary]').textContent = `${programRows.length} jurusan · ${levelTotal} tingkat kelas · ${blockCount()} / 30 rombel`;
     }
     function nextIndex(container) {
         const next = Number(container.dataset.next);
@@ -96,16 +96,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const removeLevel = event.target.closest('[data-remove-year-level]');
         const removeBlock = event.target.closest('[data-remove-block]');
         if (addProgram) {
-            if (programs().length >= 20) { window.alert('Add at most 20 programs per setup.'); return; }
-            if (blockCount() >= 30) { window.alert('Add at most 30 blocks across all programs and year levels.'); return; }
+            if (programs().length >= 20) { window.alert('Maksimal 20 jurusan dalam satu pengaturan.'); return; }
+            if (blockCount() >= 30) { window.alert('Maksimal 30 rombel untuk seluruh jurusan dan tingkat kelas.'); return; }
             const program = appendTemplate(structures, '[data-program-template]', { __program__: nextIndex(structures), __level__: 0, __block__: 0 });
             initialiseStructure(program);
             program.querySelector('select')?.focus();
         }
         if (addLevel) {
             const program = addLevel.closest('[data-structure-program]');
-            if (levels(program).length >= 12) { window.alert('Add at most 12 year levels per program.'); return; }
-            if (blockCount() >= 30) { window.alert('Add at most 30 blocks across all programs and year levels.'); return; }
+            if (levels(program).length >= 12) { window.alert('Maksimal 12 tingkat kelas untuk setiap jurusan.'); return; }
+            if (blockCount() >= 30) { window.alert('Maksimal 30 rombel untuk seluruh jurusan dan tingkat kelas.'); return; }
             const container = program.querySelector('[data-year-levels]');
             const level = appendTemplate(container, '[data-year-level-template]', { __program__: program.dataset.programIndex, __level__: nextIndex(container), __block__: 0 });
             initialiseCounter(level.querySelector('[data-level-blocks]'), '[data-structure-block]', 'blockIndex');
@@ -113,24 +113,24 @@ document.addEventListener('DOMContentLoaded', () => {
             level.querySelector('select')?.focus();
         }
         if (addBlock) {
-            if (blockCount() >= 30) { window.alert('Add at most 30 blocks across all programs and year levels.'); return; }
+            if (blockCount() >= 30) { window.alert('Maksimal 30 rombel untuk seluruh jurusan dan tingkat kelas.'); return; }
             const level = addBlock.closest('[data-structure-level]');
             const program = addBlock.closest('[data-structure-program]');
             const container = level.querySelector('[data-level-blocks]');
             appendTemplate(container, '[data-block-template]', { __program__: program.dataset.programIndex, __level__: level.dataset.levelIndex, __block__: nextIndex(container) }).querySelector('input')?.focus();
         }
         if (removeProgram) {
-            if (programs().length === 1) { window.alert('Keep at least one program in this setup.'); return; }
+            if (programs().length === 1) { window.alert('Sisakan minimal satu jurusan pada pengaturan ini.'); return; }
             removeProgram.closest('[data-structure-program]').remove();
         }
         if (removeLevel) {
             const program = removeLevel.closest('[data-structure-program]');
-            if (levels(program).length === 1) { window.alert('Keep at least one year level in each program.'); return; }
+            if (levels(program).length === 1) { window.alert('Sisakan minimal satu tingkat kelas di setiap jurusan.'); return; }
             removeLevel.closest('[data-structure-level]').remove();
         }
         if (removeBlock) {
             const level = removeBlock.closest('[data-structure-level]');
-            if (blocks(level).length === 1) { window.alert('Keep at least one block in each year level.'); return; }
+            if (blocks(level).length === 1) { window.alert('Sisakan minimal satu rombel di setiap tingkat kelas.'); return; }
             removeBlock.closest('[data-structure-block]').remove();
         }
         if (addProgram || addLevel || addBlock || removeProgram || removeLevel || removeBlock) updateStructureSummary();
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const group = add.dataset.add;
             const container = form.querySelector(`[data-repeat="${group}"]`);
             const count = directRows(container, '[data-repeat-row]').length;
-            if (count >= Number(add.dataset.max)) { window.alert(`Maximum ${add.dataset.max} rows per setup.`); return; }
+            if (count >= Number(add.dataset.max)) { window.alert(`Maksimal ${add.dataset.max} baris pada langkah ini.`); return; }
             // Use a monotonic index to keep labels and inputs unique after removing rows.
             const next = nextIndex(container);
             container.insertAdjacentHTML('beforeend', document.querySelector(`[data-template="${group}"]`).innerHTML.replaceAll('__index__', String(next)));
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (remove) {
             const row = remove.closest('[data-repeat-row]');
-            if (directRows(row.parentElement, '[data-repeat-row]').length === 1) { window.alert('Keep at least one row in this step.'); return; }
+            if (directRows(row.parentElement, '[data-repeat-row]').length === 1) { window.alert('Sisakan minimal satu baris pada langkah ini.'); return; }
             row.remove();
         }
     });

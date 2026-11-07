@@ -245,7 +245,6 @@ class AcademicSetupServiceTest extends TestCase
     public function test_schedule_conflict_rolls_back_new_year_blocks_subjects_and_classes(): void
     {
         $scope = $this->previousSetup();
-        // Simulate an inconsistent previous timetable: conflict checks must reject copying it.
         ClassSchedule::where('teacher_assignment_id', $this->classroom->id)->update(['end_time' => '10:00']);
         $copy = AcademicSetup::duplicate($scope, true, true);
         $this->assertRejectedWithoutChanges($this->draft($copy), 'schedules');
@@ -344,7 +343,6 @@ class AcademicSetupServiceTest extends TestCase
         $this->post('/login', ['email' => $user->email, 'password' => 'OriginalPassword123'])->assertSessionHasErrors('email');
         $this->assertGuest();
 
-        // Execute the actual job queued by setup; the broker and signed URL stay real.
         $payload = json_decode(DB::table('jobs')->first()->payload, true, flags: JSON_THROW_ON_ERROR);
         $job = unserialize($payload['data']['command'], ['allowed_classes' => [SendSetupInvitation::class]]);
         $this->assertInstanceOf(SendSetupInvitation::class, $job);
@@ -381,7 +379,6 @@ class AcademicSetupServiceTest extends TestCase
         $this->get('/classes/'.$this->classroom->id)->assertForbidden();
         $this->get('/admin/manage/students')->assertForbidden();
 
-        // Retrying a queued invitation must not rotate tokens or resend after activation.
         Notification::fake();
         $passwordHash = $user->fresh()->password;
         $job->handle();

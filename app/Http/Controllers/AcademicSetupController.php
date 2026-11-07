@@ -33,7 +33,7 @@ class AcademicSetupController extends Controller
     private function checkToken(Request $request, array $draft): void
     {
         if (! hash_equals($draft['token'], (string) $request->input('draft_token'))) {
-            throw ValidationException::withMessages(['setup' => 'This setup has changed or expired. Refresh the page before continuing.']);
+            throw ValidationException::withMessages(['setup' => 'Sesi pengaturan telah berubah atau kedaluwarsa. Muat ulang halaman sebelum melanjutkan.']);
         }
     }
 
@@ -78,7 +78,7 @@ class AcademicSetupController extends Controller
         }
         if ($step === 6) {
             if (! empty($draft['csv_preview']['errors'])) {
-                return redirect('/admin/setup?step=5')->withErrors(['csv' => 'Correct or remove the invalid CSV preview before review.']);
+                return redirect('/admin/setup?step=5')->withErrors(['csv' => 'Perbaiki atau hapus pratinjau CSV yang bermasalah sebelum meninjau ringkasan.']);
             }
             try {
                 $validated = AcademicSetup::validateDraft($draft);
@@ -109,7 +109,6 @@ class AcademicSetupController extends Controller
         if ($step <= 4) {
             $input = $request->all();
             if ($step === 2 && ! array_key_exists('structures', $input)) {
-                // Keep unfinished single-program drafts and existing clients compatible.
                 $input += ['program_id' => $draft['program_id'] ?? null, 'year_level_id' => $draft['year_level_id'] ?? null];
             }
             $normalized = AcademicSetup::normalizeStep($step, $input);
@@ -117,7 +116,6 @@ class AcademicSetupController extends Controller
                 AcademicSetup::validateDraft(array_merge($draft, $normalized, ['students' => [], 'csv_rows' => []]));
             }
             if ($step <= $draft['completed']) {
-                // Downstream choices refer to row indexes; discard them when earlier rows change.
                 foreach ([2 => ['structures', 'blocks', 'source_block_ids', 'copy_schedules'], 3 => ['subjects'], 4 => ['assignments'], 5 => ['students', 'csv_rows', 'csv_preview']] as $later => $keys) {
                     if ($later > $step) {
                         foreach ($keys as $key) {
@@ -161,10 +159,10 @@ class AcademicSetupController extends Controller
             }
             $request->session()->put('academic_setup', $draft);
             if ($request->input('action') !== 'continue') {
-                return redirect('/admin/setup?step=5')->with('success', 'Selection and CSV preview saved. No users or academic records have been created.');
+                return redirect('/admin/setup?step=5')->with('success', 'Pilihan siswa dan pratinjau CSV berhasil disimpan sementara. Belum ada data yang dibuat.');
             }
             if (! empty($draft['csv_preview']['errors'])) {
-                throw ValidationException::withMessages(['csv' => 'Correct or remove all invalid CSV rows before continuing.']);
+                throw ValidationException::withMessages(['csv' => 'Perbaiki atau hapus semua baris CSV yang tidak valid sebelum melanjutkan.']);
             }
             AcademicSetup::validateDraft($draft);
         }
@@ -197,31 +195,31 @@ class AcademicSetupController extends Controller
         $this->checkToken($request, $draft);
         $request->validate(['confirm' => 'accepted', 'review_hash' => 'required|string']);
         if ($draft['completed'] < 5 || empty($draft['review_hash']) || ! hash_equals($draft['review_hash'], $request->input('review_hash')) || ! empty($draft['csv_preview']['errors'])) {
-            throw ValidationException::withMessages(['setup' => 'Review the completed setup before creating it.']);
+            throw ValidationException::withMessages(['setup' => 'Tinjau seluruh langkah pengaturan sebelum menyimpan data.']);
         }
         try {
             $result = AcademicSetup::create($draft);
         } catch (QueryException $e) {
             if (in_array((string) $e->getCode(), ['23000', '23505'])) {
-                return redirect('/admin/setup?step=6')->withErrors(['setup' => 'A selected record changed or a matching record already exists. No setup was created. Review the current data and try again.']);
+                return redirect('/admin/setup?step=6')->withErrors(['setup' => 'Sebagian data yang dipilih telah berubah atau sudah terdaftar. Periksa kembali data Anda lalu coba lagi.']);
             }
             throw $e;
         }
         $request->session()->forget('academic_setup');
         $request->session()->put('academic_setup_result', ['token' => $draft['token'], 'owner' => $request->user()->id, 'summary' => $result]);
 
-        return redirect('/admin/manage/teacher-assignments')->with('success', "Academic setup created: {$result['blocks']} blocks, {$result['classes']} classes, {$result['students']} students, {$result['enrollments']} enrollments and {$result['schedules']} schedules. {$result['invitations_queued']} activation invitations queued. Previous academic records were preserved.");
+        return redirect('/admin/manage/teacher-assignments')->with('success', "Pengaturan tahun ajaran berhasil disimpan: {$result['blocks']} rombel, {$result['classes']} kelas pelajaran, {$result['students']} siswa, {$result['enrollments']} pendaftaran kelas, dan {$result['schedules']} jadwal pelajaran dibuat.");
     }
 
     public function restart(Request $request)
     {
         $request->session()->forget('academic_setup');
 
-        return redirect('/admin/setup')->with('success', 'Setup draft cleared. Saved records were not changed.');
+        return redirect('/admin/setup')->with('success', 'Draf pengaturan dikosongkan. Data sekolah yang sudah tersimpan tidak berubah.');
     }
 
     public function template(Request $request)
     {
-        return response(StudentCsvImport::template($request->boolean('scoped')), 200, ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="uep-student-template.csv"']);
+        return response(StudentCsvImport::template($request->boolean('scoped')), 200, ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="aksara-student-template.csv"']);
     }
 }

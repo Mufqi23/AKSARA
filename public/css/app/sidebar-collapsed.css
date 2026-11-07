@@ -1,0 +1,167 @@
+
+/* Fallback CSS active curve before JS indicator initializes, plus active text color */
+.sidebar-menu:not(.has-indicator) .sidebar-link.active {
+  background: var(--bg-page);
+}
+.sidebar-link.active,
+.sidebar-menu.has-indicator .sidebar-link.is-highlighted {
+  color: var(--navy);
+  font-weight: 800;
+}
+.sidebar-menu.has-indicator .sidebar-link.active:not(.is-highlighted) {
+  color: #ffffff;
+  font-weight: 700;
+}
+[data-theme="dark"] .sidebar-link.active,
+[data-theme="dark"] .sidebar-menu.has-indicator .sidebar-link.is-highlighted {
+  color: #ffffff;
+}
+.sidebar-link.active .sidebar-link-icon,
+.sidebar-menu.has-indicator .sidebar-link.is-highlighted .sidebar-link-icon {
+  color: var(--primary);
+  transform: scale(1.12);
+}
+
+.sidebar-curve-top,
+.sidebar-curve-bottom {
+  display: none;
+  position: absolute;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+.sidebar-menu:not(.has-indicator) .sidebar-link.active .sidebar-curve-top {
+  display: block;
+  top: -20px;
+  border-bottom-right-radius: 20px;
+  box-shadow: 10px 10px 0 10px var(--bg-page);
+}
+.sidebar-menu:not(.has-indicator) .sidebar-link.active .sidebar-curve-bottom {
+  display: block;
+  bottom: -20px;
+  border-top-right-radius: 20px;
+  box-shadow: 10px -10px 0 10px var(--bg-page);
+}
+
+/* Sidebar Bottom User Card */
+.sidebar-footer {
+  position: relative;
+  z-index: 3;
+  padding: 10px 14px 16px;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.sidebar-user-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: 16px;
+  background: rgba(12, 20, 38, 0.62);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  transition: padding 0.3s ease;
+}
+
+/* ── Desktop Collapsed (Icon-Only) Sidebar Mode ─────────── */
+@media (min-width: 992px) {
+  html[data-sidebar="collapsed"] .app-sidebar {
+    width: 82px;
+  }
+  html[data-sidebar="collapsed"] .sidebar-header {
+    flex-direction: column;
+    justify-content: center;
+    padding: 18px 8px 10px;
+    gap: 10px;
+  }
+  html[data-sidebar="collapsed"] .sidebar-brand-text {
+    display: none;
+  }
+  html[data-sidebar="collapsed"] .sidebar-logo-ring {
+    width: 42px;
+    height: 42px;
+  }
+  html[data-sidebar="collapsed"] .sidebar-collapse-btn svg {
+    transform: rotate(180deg);
+  }
+  html[data-sidebar="collapsed"] .sidebar-menu {
+    padding-left: 12px;
+  }
+  html[data-sidebar="collapsed"] .sidebar-indicator {
+    left: 12px;
+  }
+  html[data-sidebar="collapsed"] .sidebar-link {
+    justify-content: center;
+    padding: 11px 12px 11px 0;
+    gap: 0;
+  }
+  html[data-sidebar="collapsed"] .sidebar-link-label {
+    display: none;
+  }
+  html[data-sidebar="collapsed"] .sidebar-footer {
+    padding: 8px 10px 14px;
+  }
+  html[data-sidebar="collapsed"] .sidebar-user-card {
+    flex-direction: column;
+    justify-content: center;
+    padding: 8px 6px;
+    gap: 8px;
+  }
+  html[data-sidebar="collapsed"] .sidebar-user-info {
+    display: none;
+  }
+}
+
+.sidebar-user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--amber), var(--rose));
+  color: #ffffff;
+  font-size: 0.74rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-user-info {
+  flex: 1;
+  min-width: 0;
+}
+.sidebar-user-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar-user-role {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.sidebar-logout-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.sidebar-logout-btn:hover {
+  background: rgba(220, 38, 38, 0.85);
+  border-color: rgba(248, 113, 113, 0.6);
+  color: #ffffff;
+  transform: scale(1.06);
+}
+

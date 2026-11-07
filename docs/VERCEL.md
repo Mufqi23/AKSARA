@@ -1,29 +1,30 @@
-# Deploying this Laravel project on Vercel
+# Panduan Penerapan (Deployment) AKSARA di Vercel
 
-This deployment uses the community `vercel-php` runtime pinned to PHP 8.3. The single function at `api/index.php` loads the existing `public/index.php`; `vercel.json` serves only the bundled public assets directly and sends all other requests through Laravel. The Laravel routes and authentication remain unchanged.
+Dokumen ini menjelaskan konfigurasi penerapan **AKSARA (Aplikasi Kegiatan Sekolah dan Akademik Terpadu)** pada platform Vercel menggunakan *runtime* komunitas `vercel-php` berbasis PHP 8.3. Fungsi serverless pada `api/index.php` memuat `public/index.php`, sementara `vercel.json` mendistribusikan aset statis publik secara langsung dan mengalirkan rute lainnya ke Laravel.
 
-Import the GitHub repository into Vercel with the repository root as the project root and **Other** as the framework preset. Do not set a custom Output Directory or replace the configured function with a static site build. The PHP runtime installs the locked Composer dependencies; `vendor/` is intentionally excluded from the upload. The runtime owns its internal PHP listener, so this function deployment does not run `artisan serve` or bind a Laravel process to `PORT`. Do not add a start command or a `PORT` environment variable.
+Impor repositori GitHub ke Vercel dengan direktori utama (*root*) sebagai project root dan pilih preset framework **Other**. Jangan menetapkan Output Directory khusus atau mengubah fungsi serverless menjadi build statis.
 
-## Production environment variables
+## Variabel Lingkungan Produksi (*Environment Variables*)
 
-Add these in Vercel Project Settings → Environment Variables. Use separate values for Production and Preview when they point to separate databases. Generate a fresh `APP_KEY` with `php artisan key:generate --show` on a trusted machine; never commit it or rotate it casually after users have data.
+Tambahkan variabel berikut di **Vercel Project Settings → Environment Variables**. Buat kunci aplikasi baru dengan `php artisan key:generate --show` di komputer lokal terpercaya dan jangan pernah mengunggah `APP_KEY` ke repositori publik.
 
 ```dotenv
-APP_NAME="UEP LMS"
+APP_NAME="AKSARA (Aplikasi Kegiatan Sekolah dan Akademik Terpadu)"
 APP_ENV=production
-APP_KEY=base64:<generated-key-material>
+APP_KEY=base64:<kunci-aplikasi-terenkripsi>
 APP_DEBUG=false
-APP_URL=https://<your-deployment-domain>
-APP_TIMEZONE=Asia/Manila
+APP_URL=https://<domain-portal-sekolah-anda>
+APP_TIMEZONE=Asia/Jakarta
+APP_LOCALE=id
 LOG_CHANNEL=stderr
 LOG_LEVEL=warning
 
 DB_CONNECTION=mysql
-DB_HOST=<external-mysql-host>
+DB_HOST=<host-mysql-eksternal>
 DB_PORT=3306
-DB_DATABASE=<database-name>
-DB_USERNAME=<database-user>
-DB_PASSWORD=<database-password>
+DB_DATABASE=<nama-database>
+DB_USERNAME=<user-database>
+DB_PASSWORD=<password-database>
 
 SESSION_DRIVER=database
 SESSION_ENCRYPT=true
@@ -35,37 +36,49 @@ QUEUE_CONNECTION=database
 
 FILESYSTEM_DISK=local
 LMS_PRIVATE_FILESYSTEM=s3
-AWS_ACCESS_KEY_ID=<private-object-storage-key>
-AWS_SECRET_ACCESS_KEY=<private-object-storage-secret>
-AWS_DEFAULT_REGION=<storage-region>
-AWS_BUCKET=<private-bucket-name>
-AWS_ENDPOINT=<s3-compatible-endpoint-if-required>
+AWS_ACCESS_KEY_ID=<access-key-objek-storage>
+AWS_SECRET_ACCESS_KEY=<secret-key-objek-storage>
+AWS_DEFAULT_REGION=<wilayah-storage>
+AWS_BUCKET=<nama-bucket-privat>
+AWS_ENDPOINT=<endpoint-s3-jika-kompatibel>
 AWS_USE_PATH_STYLE_ENDPOINT=false
 
 MAIL_MAILER=smtp
 MAIL_SCHEME=smtp
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_USERNAME=<gmail-address>
-MAIL_PASSWORD=<gmail-app-password>
-MAIL_FROM_ADDRESS=<verified-sender-address>
-MAIL_FROM_NAME="UEP LMS"
+MAIL_USERNAME=<alamat-email-smtp>
+MAIL_PASSWORD=<password-aplikasi-email>
+MAIL_FROM_ADDRESS=<alamat-pengirim-terverifikasi>
+MAIL_FROM_NAME="AKSARA (Aplikasi Kegiatan Sekolah dan Akademik Terpadu)"
 ```
 
-Leave `AWS_ENDPOINT` unset for AWS S3; set it for an S3-compatible provider and use that provider's path-style setting. Keep the bucket private. The `local` disk name is retained so existing upload and download code continues to work; `LMS_PRIVATE_FILESYSTEM=s3` changes only that disk's deployment configuration. Laravel's separate `public` disk is not used for private LMS uploads. If the external MySQL provider requires TLS, configure its connection and CA according to the provider's instructions; the existing MySQL configuration already supports `DB_URL` and `MYSQL_ATTR_SSL_CA`.
+Biarkan `AWS_ENDPOINT` kosong jika menggunakan AWS S3 resmi, atau isi dengan endpoint penyedia kompatibel S3 (seperti Cloudflare R2 atau MinIO). Pastikan *bucket* penyimpanan berstatus privat. Konfigurasi `LMS_PRIVATE_FILESYSTEM=s3` mengarahkan penyimpanan bahan ajar pelajaran, berkas tugas siswa, dan foto profil ke *bucket* privat secara persisten karena direktori `/tmp` pada Vercel bersifat sementara.
 
-The wrapper directs Laravel's compiled views, manifests, and temporary storage to Vercel's writable temporary directory. This is **not persistent storage**. Files written there may disappear at any time. Configure the private bucket before allowing profile photos, class materials, and assignment submissions. Copy any existing files from `storage/app/private` to the bucket with the same relative keys before switching an existing database to the new deployment. Keep `APP_KEY` stable across deployments so encrypted sessions and other encrypted values remain readable.
+## Basis Data dan Penjadwal (*Scheduler*)
 
-## Database and scheduler
+Siapkan basis data MySQL eksternal dan jalankan migrasi sebelum membuka akses portal sekolah:
 
-Provision the external MySQL database and run `php artisan migrate --force` against it from a trusted machine or deployment job before opening the site. Run `php artisan lms:create-admin` there for the first account. Do not run migrations or seed demo accounts inside a Vercel request or build. Preview deployments should use a separate database if they must be writable.
+```bash
+php artisan migrate --force
+```
 
-The current scheduler in `routes/console.php` runs deadline reminders hourly and finalizes expired quiz attempts every minute. Vercel cron invokes HTTP endpoints, while this application has only Artisan scheduled commands. Keep an external worker/cron host running `php artisan schedule:run` every minute against the same production database and cache. No new public scheduler route is added. Expired quiz attempts are also enforced when users open or submit them, but background finalization still needs the worker.
+Untuk membuat akun administrator sekolah pertama, jalankan perintah interaktif:
 
-## Platform limits
+```bash
+php artisan lms:create-admin
+```
 
-School Year Setup CSV invitations require an external supervised `php artisan queue:work database --queue=default --tries=3 --timeout=30` worker running the same source revision and production MySQL, APP_KEY, APP_URL and SMTP environment. Vercel cannot run a persistent Artisan queue worker. The setup transaction queues invitations in the existing jobs table; it reports queued messages, not delivered email. Existing individual Resend invitation remains synchronous. No new migrations are needed. For very large bulk attendance/grade forms, configure PHP `max_input_vars` to at least 3500; incomplete row/field payloads are rejected without partial saves.
+Untuk tugas terjadwal (`lms:deadlines` pengingat tenggat tugas siswa setiap jam dan `lms:expire-quizzes` penyelesaian kuis setiap menit), sediakan worker atau *cron host* eksternal yang mengeksekusi:
 
-Vercel Functions have a 4.5 MB request and response payload limit. This application currently allows class file uploads up to 20 MB and private downloads through Laravel. Such large uploads and downloads cannot be fully supported by the present request flow on Vercel; they require direct-to-storage upload/download work or hosting Laravel on a conventional PHP server. This deployment preparation deliberately does not alter those existing features. Large PDF/XLSX exports can encounter the same response limit. Function duration and memory limits may also affect large reports; choose a region near MySQL.
+```bash
+php artisan schedule:run
+```
 
-After connecting and setting variables, verify HTTPS login, all three roles, a small private upload/download, SMTP invitation/reset delivery, the external scheduler, and report exports on the actual Vercel deployment. The local test suite and configuration checks cannot prove the third-party PHP runtime, MySQL provider, storage provider, or Gmail connectivity until those services are configured.
+## Pertimbangan Teknis Platform
+
+1. **Antrean Undangan Akun Siswa**: Pengiriman massal email aktivasi siswa dari wizard Tahun Ajaran disimpan ke tabel `jobs`. Jalankan worker eksternal (`php artisan queue:work database --queue=default --tries=3 --timeout=30`) untuk memproses pengiriman email secara asinkron.
+2. **Batas Ukuran Payload**: Fungsi serverless Vercel memiliki batas muatan *request/response* sebesar 4,5 MB. Untuk unggahan bahan ajar atau berkas tugas berukuran hingga 20 MB secara langsung melalui server aplikasi, disarankan menggunakan VPS/hosting PHP standar.
+3. **Konfigurasi Variabel Input**: Untuk formulir presensi harian atau penilaian massal pada rombel berukuran besar, pastikan `max_input_vars` bernilai minimal 3500.
+
+Setelah seluruh variabel terhubung, uji login HTTPS untuk peran Administrator Sekolah, Guru Pengajar, dan Siswa, unduhan bahan ajar privat, modul AI Peringatan Dini, pengiriman OTP 2FA, serta ekspor laporan.

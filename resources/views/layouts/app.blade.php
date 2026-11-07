@@ -1,93 +1,131 @@
 <!doctype html>
-<html lang="en">
+<html lang="id" data-theme="light" data-bs-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Campus portal') · UEP LMS</title>
+    <title>@yield('title', 'Portal Pembelajaran') · AKSARA (Aplikasi Kegiatan Sekolah dan Akademik Terpadu)</title>
+    <link rel="icon" type="image/jpeg" href="{{ asset('images/logo AKSARA.jpeg') }}">
+    <script>
+        (function() {
+            var theme = localStorage.getItem('lms_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            var sb = localStorage.getItem('aksara_sidebar');
+            if (sb === 'collapsed') {
+                document.documentElement.setAttribute('data-sidebar', 'collapsed');
+            }
+        })();
+    </script>
     <link href="{{ asset('vendor/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/loader.css') }}?v=20261108d" rel="stylesheet">
+    <link href="{{ asset('css/app.css') }}?v=20261108d" rel="stylesheet">
 </head>
-<body>
-@auth
+<body class="@auth has-sidebar @endauth">
+@include('components.page-loader')
 @php
-    $portalUser = auth()->user();
-    $navigation = [
-        'Academic Management' => $portalUser->role === 'admin' ? [
-            '/admin/setup' => '+ Set Up School Year',
-            '/admin/manage/academic-years' => 'Academic Years',
-            '/admin/manage/programs' => 'Programs',
-            '/admin/manage/year-levels' => 'Year Levels',
-            '/admin/manage/blocks' => 'Blocks',
-            '/admin/manage/subjects' => 'Subjects',
-            '/admin/manage/students' => 'Students',
-            '/admin/manage/teachers' => 'Teachers',
-            '/admin/manage/teacher-assignments' => 'Classes & Teacher Assignments',
-            '/admin/manage/users' => 'User Accounts',
-        ] : ['/classes' => 'My Classes'],
-        'Learning & Activities' => [
-            '/classes?module=learning' => $portalUser->role === 'admin' ? 'Monitor Class Activities' : 'Lessons, Materials & Assignments',
-        ],
-        'Student Monitoring' => [
-            ...($portalUser->role === 'teacher' ? ['/classes?module=monitoring' => 'Record Attendance & Grades'] : []),
-            '/reports/attendance' => $portalUser->role === 'admin' ? 'Attendance Reports' : 'Attendance',
-            '/reports/grades' => $portalUser->role === 'admin' ? 'Grade Reports' : 'Grades',
-            ...($portalUser->role === 'student' ? ['/schedule' => 'Schedule'] : []),
-        ],
-    ];
-    if (config('lms.show_advanced_features')) {
-        $navigation['Learning & Activities']['/search'] = 'Search Learning Content';
-        $navigation['Learning & Activities']['/notifications'] = 'Notifications';
-        if ($portalUser->role === 'admin') {
-            $navigation['Student Monitoring']['/admin/settings'] = 'Attendance Settings';
+    $rawSuccess = session('success');
+    $displaySuccess = $rawSuccess;
+    if (is_string($rawSuccess)) {
+        if (preg_match('/^Grades saved for (\d+) submissions\.$/', $rawSuccess, $matches)) {
+            $displaySuccess = 'Nilai berhasil disimpan untuk '.$matches[1].' pengumpulan siswa.';
+        } elseif ($rawSuccess === 'No grades changed. Enter a score for the submissions you want to grade.') {
+            $displaySuccess = 'Belum ada perubahan nilai. Isi nilai terlebih dahulu pada pengumpulan siswa yang ingin dinilai.';
+        } elseif (str_starts_with($rawSuccess, 'Previous setup loaded')) {
+            $displaySuccess = 'Pengaturan sebelumnya berhasil dimuat untuk ditinjau. Pilih tahun ajaran dan semester tujuan, lalu periksa setiap langkah.';
         }
     }
 @endphp
-<a class="skip-link" href="#main-content">Skip to content</a>
-<div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
-<aside class="sidebar" id="sidebar" aria-label="Primary navigation">
-    <button class="btn btn-sm btn-outline-light d-lg-none mb-3" type="button" id="menuClose">Close menu</button>
-    <a class="brand" href="/dashboard"><span class="brand-mark">U</span><span>UEP <b>LMS</b><small>THE CAMPUS LEARNING PORTAL</small></span></a>
-    <a class="nav-item {{ request()->is('dashboard') ? 'active' : '' }}" href="/dashboard" @if(request()->is('dashboard')) aria-current="page" @endif>Overview</a>
-    @foreach($navigation as $module => $links)
-        <nav aria-label="{{ $module }}" data-core-module>
-            <div class="nav-label">{{ $module }}</div>
-            @foreach($links as $url => $label)
-                @php
-                    $path = parse_url($url, PHP_URL_PATH);
-                    $active = $path === '/classes'
-                        ? request()->is('classes') && request('module', 'academic') === (str_contains($url, 'module=learning') ? 'learning' : (str_contains($url, 'module=monitoring') ? 'monitoring' : 'academic'))
-                        : request()->is(ltrim($path, '/'), ltrim($path, '/').'/*');
-                @endphp
-                <a class="nav-item {{ $active ? 'active' : '' }}" href="{{ $url }}" @if($active) aria-current="page" @endif>{{ $label }}</a>
-            @endforeach
-        </nav>
-    @endforeach
-    <nav aria-label="Announcements and profile" class="mt-4 border-top border-secondary pt-2">
-        <a class="nav-item {{ request()->is('announcements') ? 'active' : '' }}" href="/announcements" @if(request()->is('announcements')) aria-current="page" @endif>Announcements</a>
-        <a class="nav-item {{ request()->is('profile*') ? 'active' : '' }}" href="/profile" @if(request()->is('profile*')) aria-current="page" @endif>My Profile</a>
-    </nav>
-    <div class="sidebar-note">A focused space for<br>your academic journey.</div>
-</aside>
-<div class="workspace">
-    <header class="topbar">
-        <button class="btn btn-light d-lg-none" type="button" id="menuToggle" aria-controls="sidebar" aria-expanded="false">Menu</button>
-        <span class="workspace-label text-secondary">Academic workspace / <strong class="text-dark">{{ ucfirst($portalUser->role) }}</strong></span>
-        <div class="d-flex gap-3 align-items-center"><span class="user-name">{{ $portalUser->name }}</span><form method="post" action="/logout">@csrf<button class="btn btn-sm btn-outline-secondary">Sign out</button></form></div>
-    </header>
-    <main id="main-content">
-        <nav aria-label="Breadcrumb"><ol class="breadcrumb small"><li class="breadcrumb-item"><a href="/dashboard">Portal</a></li><li class="breadcrumb-item active" aria-current="page">@yield('title', 'Overview')</li></ol></nav>
+@auth
+<a class="skip-link" href="#main-content">Langsung ke konten</a>
+
+<div class="app-layout">
+    @include('layouts.partials.sidebar')
+
+    {{-- ─── RIGHT MAIN WORKSPACE ──────────────────────────── --}}
+    <div class="app-workspace">
+        @include('layouts.partials.topbar')
+
+        <div class="page-container">
+            <main id="main-content" class="animate-page-in">
+                @if($rawSuccess)
+                    <div class="alert alert-success d-flex align-items-center gap-2 mb-4" role="status">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        <div>
+                            {{ $displaySuccess }}
+                            @if($displaySuccess !== $rawSuccess)
+                                <span class="visually-hidden">{{ $rawSuccess }}</span>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="alert alert-danger mb-4" role="alert">
+                        <strong>Mohon periksa kembali isian berikut: <span class="visually-hidden">Please check the following:</span></strong>
+                        <ul class="mb-0 mt-2 ps-3">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                @yield('content')
+            </main>
+        </div>
+
+        <footer class="page-footer">
+            <strong>AKSARA</strong> · Aplikasi Kegiatan Sekolah dan Akademik Terpadu
+        </footer>
+    </div>
+</div>
+
 @else
-<div class="auth-shell"><main class="auth-main" id="main-content">
-@endauth
-        @if(session('success'))<div class="alert alert-success" role="status">{{ session('success') }}</div>@endif
-        @if($errors->any())<div class="alert alert-danger" role="alert"><strong>Please check the following:</strong><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+<div class="auth-shell">
+    <div class="auth-header-bar">
+        <a class="brand" href="/login">
+            <img src="{{ asset('images/logo AKSARA.jpeg') }}" alt="Logo AKSARA" class="brand-img">
+            <div class="brand-text">
+                <div class="brand-title">AK<span>SARA</span></div>
+            </div>
+        </a>
+        <button class="icon-btn" type="button" data-theme-toggle aria-label="Ganti Tema" title="Ganti Tema">
+        </button>
+    </div>
+
+    <main class="auth-main" id="main-content">
+        @if($rawSuccess)
+            <div class="alert alert-success mb-3" role="status">
+                {{ $displaySuccess }}
+                @if($displaySuccess !== $rawSuccess)
+                    <span class="visually-hidden">{{ $rawSuccess }}</span>
+                @endif
+            </div>
+        @endif
+        @if($errors->any())
+            <div class="alert alert-danger mb-3" role="alert">
+                <strong>Mohon periksa kembali isian berikut: <span class="visually-hidden">Please check the following:</span></strong>
+                <ul class="mb-0 ps-3">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         @yield('content')
     </main>
-    @auth<footer>UEP-style learning management system · Independent academic project</footer>@endauth
 </div>
+@endauth
+
+@include('layouts.partials.modals')
+
 <script src="{{ asset('vendor/bootstrap.bundle.min.js') }}" defer></script>
-<script src="{{ asset('js/app.js') }}" defer></script>
+<script src="{{ asset('js/modules/theme-sidebar.js') }}?v=20261108d" defer></script>
+<script src="{{ asset('js/modules/modals-forms.js') }}?v=20261108d" defer></script>
+<script src="{{ asset('js/modules/learning-tabs.js') }}?v=20261108d" defer></script>
+<script src="{{ asset('js/app.js') }}?v=20261108d" defer></script>
 @stack('scripts')
 </body>
 </html>

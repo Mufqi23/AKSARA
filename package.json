@@ -1,8 +1,11 @@
 {
-    "name": "uep-lms",
+    "name": "aksara",
     "version": "1.0.0",
     "private": true,
-    "description": "Laravel Blade UI with bundled Bootstrap assets; no Node build required.",
+    "description": "AKSARA (Aplikasi Kegiatan Sekolah dan Akademik Terpadu) — Laravel Blade UI with bundled Bootstrap assets; no Node build required.",
+    "scripts": {
+        "dev": "php artisan serve"
+    },
     "dependencies": {
         "bootstrap": "5.3.8"
     }

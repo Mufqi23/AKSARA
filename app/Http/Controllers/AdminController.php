@@ -46,8 +46,12 @@ class AdminController extends Controller
         }
 
         $fieldChoices = collect($fields)->map(fn ($type) => Catalog::choices($type))->all();
+        $rows = $q->latest('id')->paginate(15)->withQueryString();
+        if ($resource === 'users') {
+            User::preloadAdminVisiblePasswords($rows->getCollection());
+        }
 
-        return view('admin.index', ['resource' => $resource, 'fields' => $fields, 'fieldChoices' => $fieldChoices, 'rows' => $q->latest('id')->paginate(15)->withQueryString()]);
+        return view('admin.index', ['resource' => $resource, 'fields' => $fields, 'fieldChoices' => $fieldChoices, 'rows' => $rows]);
     }
 
     public function form(string $resource, ?int $id = null)
@@ -55,7 +59,7 @@ class AdminController extends Controller
         [$model,$fields] = Catalog::definition($resource);
         $row = $id ? $model::findOrFail($id) : new $model;
         if ($row instanceof User && $row->role === 'admin') {
-            abort(403, 'Manage administrator accounts with the console command.');
+            abort(403, 'Akun administrator utama dikelola melalui perintah konsol server.');
         }
 
         $fieldChoices = collect($fields)->map(fn ($type) => Catalog::choices($type))->all();
@@ -73,27 +77,42 @@ class AdminController extends Controller
         $row = $id ? $model::findOrFail($id) : new $model;
         $data = $r->validated();
         if ($resource === 'subjects' && $id && $row->program_id) {
-            // Curriculum placement is maintained by the validated importer. Editing
-            // titles and credit values must not move courses or prerequisite IDs.
             foreach (['program_id', 'year_level_id', 'semester', 'code'] as $scope) {
                 if ((string) ($data[$scope] ?? '') !== (string) $row->$scope) {
-                    throw ValidationException::withMessages([$scope => 'Use the curriculum importer to change an imported course code or placement.']);
+                    throw ValidationException::withMessages([$scope => 'Gunakan menu Pusat Dataset untuk mengubah kode atau penempatan mata pelajaran kurikulum.']);
                 }
             }
         }
+        $plainPassword = null;
         if ($row instanceof User) {
             abort_if($row->role === 'admin', 403);
             if ($id && ($row->student || $row->teacher) && $row->role !== $data['role']) {
-                throw ValidationException::withMessages(['role' => 'Remove the academic profile before changing this role.']);
+                throw ValidationException::withMessages(['role' => 'Hapus profil siswa/guru terlebih dahulu sebelum mengubah peran akun ini.']);
+            }
+            $hasCustomPassword = filled($data['password'] ?? null);
+            if ($hasCustomPassword) {
+                $plainPassword = (string) $data['password'];
             }
             if (! $id) {
-                $data['password'] = Str::random(48);
-                $data['status'] = 'inactive';
+                if ($hasCustomPassword) {
+                    $data['email_verified_at'] = now();
+                } else {
+                    $data['password'] = Str::random(48);
+                    $data['status'] = 'inactive';
+                }
+            } else {
+                if ($hasCustomPassword) {
+                    if (! $row->email_verified_at) {
+                        $data['email_verified_at'] = now();
+                    }
+                } else {
+                    unset($data['password']);
+                }
             }
-            if ($id && ! $row->email_verified_at && $data['status'] === 'active') {
-                throw ValidationException::withMessages(['status' => 'The user must activate their account using the invitation.']);
+            if ($id && ! $row->email_verified_at && empty($data['email_verified_at']) && $data['status'] === 'active') {
+                throw ValidationException::withMessages(['status' => 'Pengguna harus mengaktifkan akun melalui tautan undangan atau diberi kata sandi terlebih dahulu.']);
             }
-            if ($id && $data['email'] !== $row->email) {
+            if ($id && $data['email'] !== $row->email && ! $hasCustomPassword) {
                 $data['email_verified_at'] = null;
                 $data['status'] = 'inactive';
             }
@@ -101,57 +120,59 @@ class AdminController extends Controller
         if (in_array($resource, ['students', 'teachers'])) {
             $user = User::findOrFail($data['user_id']);
             if ($user->role !== ($resource === 'students' ? 'student' : 'teacher')) {
-                throw ValidationException::withMessages(['user_id' => 'Choose an account with the matching role.']);
+                throw ValidationException::withMessages(['user_id' => 'Pilih akun pengguna dengan peran yang sesuai.']);
             }
         }
         if ($resource === 'enrollments') {
             if (Student::findOrFail($data['student_id'])->block_id !== TeacherAssignment::findOrFail($data['teacher_assignment_id'])->block_id) {
-                throw ValidationException::withMessages(['student_id' => 'The student must belong to this class block.']);
+                throw ValidationException::withMessages(['student_id' => 'Siswa harus berasal dari rombel yang sama dengan kelas pelajaran ini.']);
             }
         }
         if ($resource === 'teacher-assignments') {
             $subject = Subject::findOrFail($data['subject_id']);
             $block = Block::findOrFail($data['block_id']);
             if ($subject->program_id && ($subject->program_id != $block->program_id || $subject->year_level_id != $block->year_level_id || $subject->semester != $block->semester)) {
-                throw ValidationException::withMessages(['subject_id' => 'Choose a curriculum subject matching the block Program, Year Level and Semester.']);
+                throw ValidationException::withMessages(['subject_id' => 'Pilih mata pelajaran yang sesuai dengan jurusan, tingkat kelas, dan semester rombel.']);
             }
         }
         try {
-            DB::transaction(function () use ($row, $data, $resource, $id) {
-                // Serialize schedule changes on the academic-year row to prevent competing inserts.
+            DB::transaction(function () use ($row, $data, $resource, $id, $plainPassword) {
                 if ($resource === 'schedules') {
                     $class = TeacherAssignment::findOrFail($data['teacher_assignment_id']);
                     AcademicYear::whereKey($class->block->academic_year_id)->lockForUpdate()->first();
                     $conflict = ScheduleConflicts::exists($class, $data, $id);
                     if ($conflict) {
-                        throw ValidationException::withMessages(['start_time' => 'Schedule conflicts with this teacher, block, or room.']);
+                        throw ValidationException::withMessages(['start_time' => 'Jadwal bentrok dengan jam mengajar guru, rombel, atau ruangan yang sama.']);
                     }
                 }
                 if ($resource === 'teacher-assignments' && $id && $row->schedules()->exists() && ($row->teacher_id != $data['teacher_id'] || $row->block_id != $data['block_id'])) {
-                    throw ValidationException::withMessages(['teacher_id' => 'Remove schedules before reassigning this class so conflicts can be checked.']);
+                    throw ValidationException::withMessages(['teacher_id' => 'Hapus jadwal kelas terlebih dahulu sebelum mengganti guru pengajar agar tidak terjadi bentrok jadwal.']);
                 }
                 if ($resource === 'teacher-assignments' && $id && $row->block_id != $data['block_id']) {
-                    throw ValidationException::withMessages(['block_id' => 'Create a new class for a different block to preserve academic history.']);
+                    throw ValidationException::withMessages(['block_id' => 'Buat penugasan kelas baru untuk rombel yang berbeda agar riwayat nilai tetap terjaga.']);
                 }
                 $oldBlock = $resource === 'students' ? $row->block_id : null;
                 $row->fill($data)->save();
+                if ($row instanceof User && ! empty($plainPassword)) {
+                    $row->saveAdminVisiblePassword($plainPassword);
+                }
                 if ($resource === 'students') {
                     if ($oldBlock && $oldBlock != $row->block_id) {
                         $row->enrollments()->delete();
                     }
-                    foreach (TeacherAssignment::where('block_id', $row->block_id)->get() as $class) {
-                        Enrollment::firstOrCreate(['student_id' => $row->id, 'teacher_assignment_id' => $class->id]);
+                    foreach (TeacherAssignment::where('block_id', $row->block_id)->pluck('id') as $classId) {
+                        Enrollment::firstOrCreate(['student_id' => $row->id, 'teacher_assignment_id' => $classId]);
                     }
                 }
                 if ($resource === 'teacher-assignments') {
-                    foreach (Student::where('block_id', $row->block_id)->get() as $student) {
-                        Enrollment::firstOrCreate(['student_id' => $student->id, 'teacher_assignment_id' => $row->id]);
+                    foreach (Student::where('block_id', $row->block_id)->pluck('id') as $studentId) {
+                        Enrollment::firstOrCreate(['student_id' => $studentId, 'teacher_assignment_id' => $row->id]);
                     }
                 }
             });
         } catch (QueryException $e) {
             if (in_array($e->getCode(), ['23000', '23505'])) {
-                return back()->withInput()->withErrors(['record' => 'A matching record already exists or a related record prevents this change.']);
+                return back()->withInput()->withErrors(['record' => 'Data yang sama sudah terdaftar atau masih terhubung dengan data lain.']);
             }
             throw $e;
         }
@@ -161,11 +182,11 @@ class AdminController extends Controller
             } catch (\Throwable $e) {
                 report($e);
 
-                return redirect('/admin/manage/users')->withErrors(['email' => 'Account saved, but mail delivery failed. Check SMTP and resend the invitation.']);
+                return redirect('/admin/manage/users')->withErrors(['email' => 'Akun berhasil disimpan, tetapi pengiriman email undangan gagal. Periksa pengaturan email lalu kirim ulang undangan.']);
             }
         }
 
-        return redirect('/admin/manage/'.$resource)->with('success', 'Record saved.');
+        return redirect('/admin/manage/'.$resource)->with('success', 'Data berhasil disimpan.');
     }
 
     public function delete(Request $r, string $resource, int $id)
@@ -179,10 +200,10 @@ class AdminController extends Controller
         try {
             $row->delete();
         } catch (QueryException $e) {
-            return back()->withErrors(['record' => 'This record has academic history. Remove its unused relationships first, or suspend the user instead.']);
+            return back()->withErrors(['record' => 'Data ini masih digunakan pada riwayat akademik. Hapus data terkait terlebih dahulu atau nonaktifkan akun pengguna.']);
         }
 
-        return back()->with('success', 'Record removed.');
+        return back()->with('success', 'Data berhasil dihapus.');
     }
 
     private function sendInvitation(User $user): void
@@ -195,7 +216,7 @@ class AdminController extends Controller
         abort_unless($user->status === 'inactive' && ! $user->email_verified_at, 422);
         $this->sendInvitation($user);
 
-        return back()->with('success', 'Invitation sent.');
+        return back()->with('success', 'Email undangan aktivasi berhasil dikirim.');
     }
 
     public function settings()
@@ -208,6 +229,6 @@ class AdminController extends Controller
         $r->validate(['late_threshold' => 'required|integer|min:1|max:120']);
         Setting::updateOrCreate(['key' => 'late_threshold'], ['value' => $r->late_threshold]);
 
-        return back()->with('success', 'Default saved. Existing attendance sessions retain their original threshold.');
+        return back()->with('success', 'Batas waktu keterlambatan berhasil disimpan. Sesi kehadiran sebelumnya tetap memakai aturan awal.');
     }
 }

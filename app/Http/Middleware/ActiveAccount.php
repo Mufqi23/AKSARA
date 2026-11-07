@@ -15,7 +15,7 @@ class ActiveAccount
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()->route('login')->withErrors(['email' => 'Your account is not active. Contact the administrator.']);
+            return redirect()->route('login')->withErrors(['email' => 'Akun Anda sedang tidak aktif. Silakan hubungi Admin Sekolah.']);
         }
 
         return $next($request);
