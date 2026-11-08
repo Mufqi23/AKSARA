@@ -1,5 +1,13 @@
 <?php
 
+if (isset($_GET['check'])) {
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "AKSARA PHP Runner OK!\n";
+    echo "PHP Version: " . PHP_VERSION . "\n";
+    echo "PostgreSQL Extension: " . (extension_loaded('pdo_pgsql') ? 'TERPASANG (OK)' : 'TIDAK ADA') . "\n";
+    exit(0);
+}
+
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
