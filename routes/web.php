@@ -8,37 +8,12 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LearningHubController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LandingController::class, 'index']);
 
-Route::get('/migrate-database', function () {
-    @set_time_limit(120);
-    try {
-        // Uji koneksi database terlebih dahulu
-        \Illuminate\Support\Facades\DB::connection()->getPdo();
-
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
-
-        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
-        $seedOutput = \Illuminate\Support\Facades\Artisan::output();
-
-        return "<div style='font-family:sans-serif;padding:30px;max-width:800px;margin:auto;'>"
-            . "<h2 style='color:#16a34a;'>Database Berhasil Dimigrasi & Diisi!</h2>"
-            . "<pre style='background:#f3f4f6;padding:15px;border-radius:8px;'>"
-            . htmlspecialchars($migrateOutput . "\n" . $seedOutput)
-            . "</pre>"
-            . "<p><a href='/' style='display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold;'>Buka Halaman Utama AKSARA</a></p>"
-            . "</div>";
-    } catch (\Throwable $e) {
-        return "<div style='font-family:sans-serif;padding:30px;max-width:800px;margin:auto;'>"
-            . "<h2 style='color:#dc2626;'>Gagal Menjalankan Migrasi Database</h2>"
-            . "<p><strong>Pesan:</strong> " . htmlspecialchars($e->getMessage()) . "</p>"
-            . "<pre style='background:#f3f4f6;padding:15px;border-radius:8px;'>" . htmlspecialchars($e->getTraceAsString()) . "</pre>"
-            . "</div>";
-    }
-});
+Route::get('/setup/{token}', SetupController::class);
 
 require __DIR__.'/auth.php';
 

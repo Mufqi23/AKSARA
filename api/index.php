@@ -8,8 +8,8 @@ if (isset($_GET['check'])) {
     exit(0);
 }
 
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
+ini_set('display_errors', '0');
+ini_set('display_startup_errors', '0');
 error_reporting(E_ALL);
 
 try {
@@ -69,13 +69,13 @@ try {
 
     require __DIR__.'/../public/index.php';
 } catch (\Throwable $e) {
-    http_response_code(200);
+    // Detail teknis hanya dicatat ke log server, tidak ditampilkan ke pengunjung.
+    error_log('AKSARA boot error: '.$e->getMessage().' @ '.$e->getFile().':'.$e->getLine());
+    http_response_code(500);
     header('Content-Type: text/html; charset=utf-8');
-    echo "<div style='font-family:sans-serif;padding:30px;max-width:800px;margin:auto;'>";
-    echo "<h2 style='color:#dc2626;'>Pemberitahuan Sistem AKSARA</h2>";
-    echo "<p><strong>Pesan:</strong> ".htmlspecialchars($e->getMessage())."</p>";
-    echo "<p><strong>Lokasi:</strong> ".htmlspecialchars($e->getFile().":".$e->getLine())."</p>";
-    echo "<details><summary style='cursor:pointer;'>Lihat Stack Trace Lengkap</summary><pre style='background:#f3f4f6;padding:12px;border-radius:8px;overflow:auto;'>".htmlspecialchars($e->getTraceAsString())."</pre></details>";
-    echo "</div>";
+    echo '<div style="font-family:sans-serif;padding:30px;max-width:640px;margin:auto;">';
+    echo '<h2>Halaman sedang tidak dapat dibuka</h2>';
+    echo '<p>Silakan coba lagi beberapa saat lagi atau hubungi admin sekolah.</p>';
+    echo '</div>';
     exit(0);
 }
