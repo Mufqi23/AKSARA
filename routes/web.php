@@ -13,7 +13,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [LandingController::class, 'index']);
 
 Route::get('/migrate-database', function () {
+    @set_time_limit(120);
     try {
+        // Uji koneksi database terlebih dahulu
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
 
