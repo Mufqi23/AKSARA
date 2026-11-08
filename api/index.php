@@ -23,14 +23,13 @@ try {
         }
     }
 
+    if (empty($_SERVER['REMOTE_ADDR'])) {
+        $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '127.0.0.1';
+    }
+
     $runtimePaths = [
         'LARAVEL_STORAGE_PATH' => $storage,
         'VIEW_COMPILED_PATH' => $storage.'/framework/views',
-        'APP_CONFIG_CACHE' => $storage.'/framework/cache/config.php',
-        'APP_EVENTS_CACHE' => $storage.'/framework/cache/events.php',
-        'APP_PACKAGES_CACHE' => $storage.'/framework/cache/packages.php',
-        'APP_ROUTES_CACHE' => $storage.'/framework/cache/routes-v7.php',
-        'APP_SERVICES_CACHE' => $storage.'/framework/cache/services.php',
     ];
 
     foreach ([
